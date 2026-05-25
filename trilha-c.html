@@ -299,6 +299,84 @@ gcc meu_arquivo.c -o meu_programa
 </pre>
       <div class="warn-box"><strong>Atenção:</strong> No <code>scanf</code> sempre use <code>&</code> antes do nome da variável (exceto strings/arrays). Esquecer o <code>&</code> é um dos erros mais comuns em C e causa comportamento indefinido.</div>
 
+      <h3>Sequências de escape</h3>
+      <p>Caracteres especiais que não podem ser digitados diretamente em strings usam <code>\</code> como prefixo:</p>
+      <table>
+        <tr><th>Sequência</th><th>Significado</th><th>Código ASCII</th></tr>
+        <tr><td><code>\n</code></td><td>Nova linha (newline)</td><td>10</td></tr>
+        <tr><td><code>\t</code></td><td>Tabulação horizontal</td><td>9</td></tr>
+        <tr><td><code>\r</code></td><td>Retorno de carro (carriage return)</td><td>13</td></tr>
+        <tr><td><code>\a</code></td><td>Sinal sonoro (alert/beep)</td><td>7</td></tr>
+        <tr><td><code>\\</code></td><td>Barra invertida literal</td><td>92</td></tr>
+        <tr><td><code>\"</code></td><td>Aspas duplas dentro de string</td><td>34</td></tr>
+        <tr><td><code>\'</code></td><td>Aspas simples em char literal</td><td>39</td></tr>
+        <tr><td><code>\0</code></td><td>Caractere nulo — termina strings</td><td>0</td></tr>
+        <tr><td><code>\xNN</code></td><td>Caractere pelo código hex (ex: <code>\x41</code> = 'A')</td><td>NN hex</td></tr>
+      </table>
+<pre>
+<span class="fn">printf</span>(<span class="str">"Sensor:\t%.2f\nVel:\t%d\n"</span>, leitura, vel);
+<span class="c">// Saída:</span>
+<span class="c">// Sensor: 4.75</span>
+<span class="c">// Vel:    150</span>
+
+<span class="fn">printf</span>(<span class="str">"Caminho: C:\\Phoenix\\robo.c\n"</span>);  <span class="c">// \ precisa de escape: \\</span>
+<span class="fn">printf</span>(<span class="str">"Ele disse: \"ola!\"\n"</span>);          <span class="c">// aspas dentro de string</span>
+</pre>
+
+      <h3>Sufixos de literais numéricos</h3>
+      <p>C infere o tipo de constantes numéricas. Sufixos explicitam o tipo e evitam conversões silenciosas:</p>
+      <table>
+        <tr><th>Sufixo</th><th>Tipo resultante</th><th>Exemplo</th></tr>
+        <tr><td><code>f</code> ou <code>F</code></td><td><code>float</code> (32 bits)</td><td><code>3.14f</code></td></tr>
+        <tr><td>(nenhum)</td><td><code>double</code> (64 bits)</td><td><code>3.14</code></td></tr>
+        <tr><td><code>L</code></td><td><code>long</code> ou <code>long double</code></td><td><code>1000L</code></td></tr>
+        <tr><td><code>u</code> ou <code>U</code></td><td><code>unsigned int</code></td><td><code>300u</code></td></tr>
+        <tr><td><code>ul</code> ou <code>UL</code></td><td><code>unsigned long</code></td><td><code>999999ul</code></td></tr>
+      </table>
+<pre>
+<span class="ty">float</span> a  = <span class="num">3.14f</span>;     <span class="c">// sem f: literal double → conversão implícita para float</span>
+<span class="ty">long</span>  c  = <span class="num">100000L</span>;  <span class="c">// sem L: literal int, pode não caber em int de 16 bits</span>
+<span class="ty">unsigned</span> d = <span class="num">50u</span>;   <span class="c">// unsigned deixa claro que não é negativo</span>
+</pre>
+      <div class="info-box">Em robótica com MCU de 32 bits (ESP32, STM32), use <code>3.14f</code> e não <code>3.14</code> em operações <code>float</code>. Sem o <code>f</code>, o compilador opera em <code>double</code> (64 bits) e pode ser mais lento em hardware sem FPU de 64 bits.</div>
+
+      <h3>Escopo: global vs local</h3>
+      <p>O <strong>escopo</strong> define onde uma variável é visível e quando ela existe na memória:</p>
+<pre>
+<span class="ty">int</span> vel_max = <span class="num">255</span>;      <span class="c">// GLOBAL: visível em todo o arquivo, durante toda execução</span>
+
+<span class="ty">void</span> <span class="fn">acelerar</span>(<span class="ty">int</span> alvo) {
+    <span class="ty">int</span> incremento = <span class="num">10</span>; <span class="c">// LOCAL: existe só nesta função, destruída ao retornar</span>
+    <span class="kw">if</span> (alvo &gt; vel_max) alvo = vel_max;  <span class="c">// acessa global</span>
+}   <span class="c">// incremento deixa de existir aqui</span>
+
+<span class="ty">void</span> <span class="fn">frear</span>(<span class="ty">void</span>) {
+    vel_max = <span class="num">0</span>;        <span class="c">// mesma global, outra função</span>
+    <span class="c">// incremento não existe aqui — escopo local é exclusivo</span>
+}
+</pre>
+      <div class="warn-box"><strong>Evite variáveis globais:</strong> Elas criam dependências ocultas entre funções, dificultam testes e escondem bugs. Passe dados como parâmetros. Em robótica, globais são às vezes necessárias (ex: buffer de leitura de sensor em interrupção), mas use com consciência.</div>
+
+      <h3>Principais bibliotecas padrão</h3>
+      <table>
+        <tr><th>Header</th><th>O que oferece</th><th>Funções-chave</th></tr>
+        <tr><td><code>&lt;stdio.h&gt;</code></td><td>I/O padrão</td><td><code>printf, scanf, fopen, fclose, fgets, fprintf, getchar</code></td></tr>
+        <tr><td><code>&lt;stdlib.h&gt;</code></td><td>Utilidades gerais</td><td><code>malloc, free, exit, atoi, abs, rand, qsort</code></td></tr>
+        <tr><td><code>&lt;string.h&gt;</code></td><td>Manipulação de strings e memória</td><td><code>strlen, strcpy, strcat, strcmp, memset, memcpy</code></td></tr>
+        <tr><td><code>&lt;math.h&gt;</code></td><td>Matemática (link com <code>-lm</code>)</td><td><code>sqrt, pow, sin, cos, fabs, floor, ceil</code></td></tr>
+        <tr><td><code>&lt;stdint.h&gt;</code></td><td>Tipos de tamanho fixo</td><td><code>uint8_t, int16_t, uint32_t, int64_t</code></td></tr>
+        <tr><td><code>&lt;stdbool.h&gt;</code></td><td>Tipo booleano (C99+)</td><td><code>bool, true, false</code></td></tr>
+        <tr><td><code>&lt;ctype.h&gt;</code></td><td>Classificação de caracteres</td><td><code>isdigit, isalpha, toupper, tolower</code></td></tr>
+      </table>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;math.h&gt;</span>    <span class="c">// precisa linkar com -lm: gcc prog.c -o prog -lm</span>
+
+<span class="ty">double</span> raiz   = <span class="fn">sqrt</span>(<span class="num">16.0</span>);       <span class="c">// 4.0</span>
+<span class="ty">double</span> potenc = <span class="fn">pow</span>(<span class="num">2.0</span>, <span class="num">10.0</span>);  <span class="c">// 1024.0</span>
+<span class="ty">double</span> seno   = <span class="fn">sin</span>(<span class="num">3.14159</span> / <span class="num">2</span>); <span class="c">// ≈ 1.0 (ângulo em radianos!)</span>
+<span class="ty">double</span> modulo = <span class="fn">fabs</span>(-<span class="num">7.5</span>);       <span class="c">// 7.5 (valor absoluto para float)</span>
+</pre>
+
     </div>
     <div class="quiz-section">
       <h3>Quiz — Módulo 1</h3>
@@ -567,6 +645,71 @@ n %= <span class="num">2</span>;   <span class="c">// n = 1</span>
 </pre>
       <div class="warn-box">Recursão sem caso base correto → loop infinito e <em>stack overflow</em>. Em sistemas embarcados, evite recursão profunda pois a pilha é limitada (geralmente poucos KB).</div>
 
+      <h3>Como pensar em recursão: caminho de ida e volta</h3>
+      <p>Toda recursão tem dois momentos — André Backes chama de <strong>caminho de ida</strong> e <strong>caminho de volta</strong>:</p>
+      <ul>
+        <li><strong>Caminho de ida:</strong> a função chama a si mesma, aproximando-se do caso base. Cada chamada empilha um novo frame na pilha.</li>
+        <li><strong>Caso base:</strong> a condição de parada. Sem ela, recursão infinita e stack overflow.</li>
+        <li><strong>Caminho de volta:</strong> o caso base retorna, e as chamadas anteriores completam seu cálculo em ordem inversa.</li>
+      </ul>
+<pre>
+<span class="c">// fatorial(4): rastreando cada frame</span>
+<span class="ty">int</span> <span class="fn">fatorial</span>(<span class="ty">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="num">1</span>) <span class="kw">return</span> <span class="num">1</span>;     <span class="c">// caso base: para a descida</span>
+    <span class="kw">return</span> n * <span class="fn">fatorial</span>(n-<span class="num">1</span>);  <span class="c">// chama com n reduzido (critério de parada)</span>
+}
+
+<span class="c">// IDA:    fatorial(4) → fatorial(3) → fatorial(2) → fatorial(1)</span>
+<span class="c">// BASE:   fatorial(1) retorna 1</span>
+<span class="c">// VOLTA:  fatorial(2) retorna 2*1=2</span>
+<span class="c">//         fatorial(3) retorna 3*2=6</span>
+<span class="c">//         fatorial(4) retorna 4*6=24  ← resultado final</span>
+</pre>
+      <div class="info-box"><strong>Duas regras para recursão funcionar:</strong> (1) o <em>critério de parada</em> (caso base) deve ser atingível; (2) o <em>parâmetro da chamada recursiva</em> deve se aproximar do caso base a cada chamada. Se <code>n</code> nunca chegar a 1, a recursão nunca para.</div>
+
+      <h3>Recursão vs Iteração: Fibonacci</h3>
+      <p>Fibonacci é o exemplo clássico de onde recursão é elegante, mas <em>ineficiente</em>:</p>
+<pre>
+<span class="c">// Versão RECURSIVA — elegante, porém lenta: O(2^n)</span>
+<span class="ty">int</span> <span class="fn">fib_recursivo</span>(<span class="ty">int</span> n) {
+    <span class="kw">if</span> (n == <span class="num">0</span>) <span class="kw">return</span> <span class="num">0</span>;
+    <span class="kw">if</span> (n == <span class="num">1</span>) <span class="kw">return</span> <span class="num">1</span>;
+    <span class="kw">return</span> <span class="fn">fib_recursivo</span>(n-<span class="num">1</span>) + <span class="fn">fib_recursivo</span>(n-<span class="num">2</span>);
+}
+<span class="c">// fib(10) faz ~177 chamadas. fib(40) faz ~331 milhões de chamadas!</span>
+
+<span class="c">// Versão ITERATIVA — eficiente: O(n)</span>
+<span class="ty">int</span> <span class="fn">fib_iterativo</span>(<span class="ty">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="num">1</span>) <span class="kw">return</span> n;
+    <span class="ty">int</span> a = <span class="num">0</span>, b = <span class="num">1</span>, c;
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">2</span>; i &lt;= n; i++) {
+        c = a + b;   <span class="c">// próximo Fibonacci</span>
+        a = b;       <span class="c">// avança a janela</span>
+        b = c;
+    }
+    <span class="kw">return</span> b;
+}
+</pre>
+      <div class="warn-box"><strong>Fibonacci recursivo recalcula o mesmo valor muitas vezes.</strong> <code>fib(5)</code> chama <code>fib(3)</code> duas vezes, <code>fib(2)</code> três vezes. Para n grande, o tempo explode exponencialmente. Use a versão iterativa ou técnicas como <em>memoização</em>.</div>
+
+      <h3>Passando arrays para funções</h3>
+      <p>Quando um array é passado para uma função, ele "decai" (decay) para um ponteiro para o primeiro elemento. O tamanho é perdido — passe sempre como parâmetro separado:</p>
+<pre>
+<span class="c">// As duas declarações abaixo são equivalentes:</span>
+<span class="ty">float</span> <span class="fn">media</span>(<span class="ty">float</span> *arr, <span class="ty">int</span> n);       <span class="c">// notação de ponteiro</span>
+<span class="ty">float</span> <span class="fn">media</span>(<span class="ty">float</span>  arr[], <span class="ty">int</span> n);    <span class="c">// notação de array — mesmo que acima!</span>
+
+<span class="ty">float</span> <span class="fn">media</span>(<span class="ty">float</span> arr[], <span class="ty">int</span> n) {
+    <span class="ty">float</span> soma = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; n; i++) soma += arr[i];
+    <span class="kw">return</span> soma / n;
+}
+
+<span class="ty">float</span> sensores[<span class="num">9</span>] = {<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>};
+<span class="ty">float</span> m = <span class="fn">media</span>(sensores, <span class="num">9</span>);  <span class="c">// passa ponteiro + tamanho explícito</span>
+</pre>
+      <div class="info-box">Dentro de <code>media()</code>, você <em>não</em> consegue saber o tamanho do array com <code>sizeof(arr)</code> — ele retorna o tamanho do ponteiro (4 ou 8 bytes), não do array. Sempre passe o tamanho como parâmetro separado.</div>
+
     </div>
     <div class="quiz-section">
       <h3>Quiz — Módulo 4</h3>
@@ -760,16 +903,41 @@ senna.velocidade = <span class="num">150</span>;
 senna.posicao    = <span class="num">4000.0f</span>;
 </pre>
 
-      <h3>Ponteiro para struct (operador ->)</h3>
+      <h3>Ponteiro para struct — operador seta (->)</h3>
+      <p>Quando você tem um <strong>ponteiro</strong> para struct, precisa desreferenciar antes de acessar o campo. O operador <code>-&gt;</code> faz as duas coisas de uma vez:</p>
+
+      <table>
+        <tr><th>Sem <code>-&gt;</code> (verboso)</th><th>Com <code>-&gt;</code> (equivalente, mais limpo)</th></tr>
+        <tr><td><code>(*r).nome</code></td><td><code>r-&gt;nome</code></td></tr>
+        <tr><td><code>(*r).velocidade = 150</code></td><td><code>r-&gt;velocidade = 150</code></td></tr>
+        <tr><td><code>(*r).posicao += 1.0f</code></td><td><code>r-&gt;posicao += 1.0f</code></td></tr>
+      </table>
 <pre>
-<span class="ty">void</span> <span class="fn">imprimirRobo</span>(Robo *r) {
-    <span class="fn">printf</span>(<span class="str">"Nome: %s\n"</span>, r-&gt;nome);        <span class="c">// r->campo == (*r).campo</span>
-    <span class="fn">printf</span>(<span class="str">"Vel: %d\n"</span>,  r-&gt;velocidade);
+<span class="c">// SEM seta: verbose e fácil de errar com precedência</span>
+<span class="ty">void</span> <span class="fn">configSemSeta</span>(Robo *r) {
+    (*r).velocidade = <span class="num">150</span>;    <span class="c">// parênteses obrigatórios! *r.vel seria erro</span>
+    (*r).posicao    = <span class="num">0.0f</span>;
 }
 
-<span class="fn">imprimirRobo</span>(&amp;senna);  <span class="c">// passa endereço para evitar cópia</span>
+<span class="c">// COM seta: equivalente, muito mais legível</span>
+<span class="ty">void</span> <span class="fn">config</span>(Robo *r) {
+    r-&gt;velocidade = <span class="num">150</span>;      <span class="c">// r->campo == (*r).campo</span>
+    r-&gt;posicao    = <span class="num">0.0f</span>;
+}
+
+<span class="c">// Lendo e modificando — ponteiro permite alterar o original</span>
+<span class="ty">void</span> <span class="fn">imprimirRobo</span>(<span class="kw">const</span> Robo *r) {   <span class="c">// const: garante que não vai modificar</span>
+    <span class="fn">printf</span>(<span class="str">"Nome: %s\n"</span>, r-&gt;nome);
+    <span class="fn">printf</span>(<span class="str">"Vel:  %d\n"</span>, r-&gt;velocidade);
+}
+
+Robo senna;
+senna.velocidade = <span class="num">200</span>;
+<span class="fn">config</span>(&amp;senna);         <span class="c">// passa endereço — senna.velocidade vira 150</span>
+<span class="fn">imprimirRobo</span>(&amp;senna);  <span class="c">// passa endereço — const: lê sem risco de modificar</span>
 </pre>
-      <div class="info-box">Passe structs grandes por ponteiro (<code>&amp;</code>), não por valor. Copiar uma struct grande a cada chamada de função é lento e desperdiça pilha.</div>
+      <div class="warn-box"><strong>Precedência de *:</strong> <code>*r.campo</code> não compila como esperado — o compilador lê como <code>*(r.campo)</code>, que tenta desreferenciar o campo (erro). Sempre use <code>(*r).campo</code> ou prefira <code>r-&gt;campo</code>.</div>
+      <div class="info-box">Passe structs por ponteiro (<code>&amp;</code>), não por valor. Copiar uma struct grande na pilha a cada chamada é lento. Ponteiro copia apenas 4 ou 8 bytes (o endereço). Use <code>const Robo *r</code> quando a função só lê — comunica intenção e impede modificações acidentais.</div>
 
       <h3>Structs aninhadas</h3>
 <pre>
@@ -922,7 +1090,13 @@ const QUIZZES = {
       explain: 'const cria uma variável real com tipo e escopo, enquanto #define é uma diretiva do pré-processador que faz substituição textual sem verificação de tipo.' },
     { q: 'Qual etapa do processo de compilação junta os arquivos .o com as bibliotecas?',
       opts: ['Pré-processador','Compilador','Montador (assembler)','Linker'], correct: 3,
-      explain: 'O linker (ligador) é responsável por juntar os arquivos objeto (.o) gerados pelo montador com as bibliotecas necessárias para gerar o executável final.' }
+      explain: 'O linker (ligador) é responsável por juntar os arquivos objeto (.o) gerados pelo montador com as bibliotecas necessárias para gerar o executável final.' },
+    { q: 'O que imprime: printf("A\\tB\\nC");',
+      opts: ['A\\tB\\nC','A<TAB>B<NEWLINE>C','A B C','Erro de compilação'], correct: 1,
+      explain: '\\t é tabulação horizontal e \\n é nova linha. A saída é: A (tab) B (nova linha) C.' },
+    { q: 'Uma variável local declarada dentro de uma função existe:',
+      opts: ['Durante toda a execução do programa','Apenas enquanto a função está em execução (no escopo do bloco)','Em todo o arquivo .c','Até o próximo #define'], correct: 1,
+      explain: 'Variáveis locais são alocadas na pilha quando a função é chamada e destruídas quando ela retorna. Variáveis globais existem durante toda a execução. static local é exceção: persiste entre chamadas.' }
   ],
   mod2: [
     { q: 'Qual o resultado de 7 % 3 em C?',
@@ -964,7 +1138,13 @@ const QUIZZES = {
       explain: 'Passar por valor copia todos os campos da struct na pilha. Para structs grandes, isso é lento e desperdiça espaço de pilha. Passar um ponteiro copia apenas 4 ou 8 bytes (endereço).' },
     { q: 'O que é comportamento indefinido em recursão sem caso base?',
       opts: ['Retorna 0 automaticamente','Provoca stack overflow: a pilha cresce indefinidamente até estourar','O compilador adiciona um caso base','Entra em loop infinito no heap'], correct: 1,
-      explain: 'Sem caso base, a função chama a si mesma infinitamente. Cada chamada aloca um frame na pilha. Eventualmente a pilha fica sem espaço: stack overflow. Em sistemas embarcados, a pilha pode ser de apenas alguns KB.' }
+      explain: 'Sem caso base, a função chama a si mesma infinitamente. Cada chamada aloca um frame na pilha. Eventualmente a pilha fica sem espaço: stack overflow. Em sistemas embarcados, a pilha pode ser de apenas alguns KB.' },
+    { q: 'Por que fib_recursivo(40) é muito mais lento que fib_iterativo(40)?',
+      opts: ['Recursão usa mais memória de pilha','A versão recursiva recalcula os mesmos subproblemas milhões de vezes (O(2^n) chamadas)','Funções recursivas são proibidas em C99','O compilador não otimiza recursão'], correct: 1,
+      explain: 'fib_recursivo(n) chama fib(n-1) e fib(n-2). Cada um desses chama mais dois, formando uma árvore de chamadas exponencial. fib(5) já é calculado várias vezes dentro de fib(40). A versão iterativa faz exatamente n passos: O(n).' },
+    { q: 'Dentro de uma função, como obter o tamanho de um array recebido como parâmetro float arr[]?',
+      opts: ['sizeof(arr) / sizeof(arr[0])','Não é possível: sizeof(arr) retorna o tamanho do ponteiro, não do array','arr.length','strlen(arr)'], correct: 1,
+      explain: 'Quando um array é passado para uma função, ele decai para um ponteiro. sizeof(arr) retorna o tamanho do ponteiro (4 ou 8 bytes), não do array original. Sempre passe o tamanho como parâmetro separado: media(arr, 9).' }
   ],
   mod5: [
     { q: 'Qual o índice do último elemento de int arr[8]?',
@@ -1006,7 +1186,13 @@ const QUIZZES = {
       explain: 'enum define um tipo que pode assumir um conjunto fixo de valores nomeados (constantes inteiras). Melhora legibilidade: MODO_SEGUINDO é mais claro que o número 1 solto no código.' },
     { q: 'Para uma struct com 100 campos float, qual forma de passagem para função é mais eficiente?',
       opts: ['Por valor (cópia)','Por ponteiro (endereço da struct)','Ambas são equivalentes','Depende do compilador'], correct: 1,
-      explain: 'Passar por valor copia todos os 100 campos (400 bytes) na pilha. Passar um ponteiro copia apenas 4 ou 8 bytes (o endereço). Para structs grandes, sempre passe por ponteiro.' }
+      explain: 'Passar por valor copia todos os 100 campos (400 bytes) na pilha. Passar um ponteiro copia apenas 4 ou 8 bytes (o endereço). Para structs grandes, sempre passe por ponteiro.' },
+    { q: 'Qual é o problema de escrever *r.velocidade para acessar o campo de um ponteiro de struct?',
+      opts: ['É correto em C99','O compilador lê como *(r.velocidade) — tenta desreferenciar o campo, que não é ponteiro','Funciona mas é depreciado','Precisa de cast explícito'], correct: 1,
+      explain: 'O operador . tem precedência maior que *. *r.campo é lido como *(r.campo), tentando desreferenciar o campo (erro). Use (*r).campo ou, melhor, r->campo que foi criado exatamente para isso.' },
+    { q: 'Qual é o benefício de declarar const Robo *r como parâmetro de função?',
+      opts: ['Melhora performance em 2x','Comunica que a função só lê a struct; o compilador impede modificações acidentais dentro da função','Cria uma cópia local da struct','Equivalente a passar por valor'], correct: 1,
+      explain: 'const Robo *r diz: "tenho o endereço de uma Robo que não vou modificar". Isso comunica intenção ao programador, e o compilador gera erro se você tentar r->campo = valor dentro da função. Use para funções de leitura/impressão.' }
   ],
   mod8: [
     { q: 'Qual a diferença entre malloc e calloc?',
