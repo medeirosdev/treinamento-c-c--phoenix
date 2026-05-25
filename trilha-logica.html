@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha Lógica de Programação — C/C++ Training</title>
+<style>
+  :root {
+    --bg: #080600; --surface: #110e00; --surface2: #1a1500;
+    --orange: #ff6a00; --gold: #ffaa00;
+    --text: #f0ece0; --muted: #7a6a50; --border: rgba(255,106,0,0.18);
+    --sidebar-w: 260px;
+    --green: #4caf50; --red: #f44336;
+    --logic: #00bcd4; --logic-dim: rgba(0,188,212,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border);
+    overflow-y: auto; z-index: 100; padding: 0 0 40px;
+    transition: transform .28s ease;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .sidebar-header a { color: var(--orange); text-decoration: none; font-size: .82rem; }
+  .sidebar-header h3 { font-size: .95rem; margin-top: 8px; color: var(--logic); }
+  .sidebar-header p { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+  .mod-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; font-size: .85rem;
+    border-left: 3px solid transparent; transition: all .15s; color: var(--muted);
+    text-decoration: none;
+  }
+  .mod-link:hover { background: rgba(0,188,212,.06); color: var(--text); }
+  .mod-link.active { border-left-color: var(--logic); color: var(--logic); background: rgba(0,188,212,.08); }
+  .mod-link.done { color: var(--green); }
+  .mod-link.done::after { content: ' ✓'; font-size: .75rem; }
+  .mod-num {
+    min-width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,188,212,.15); color: var(--logic);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700;
+  }
+  .sidebar-prog { padding: 16px 20px 8px; }
+  .sidebar-prog-bar { height: 4px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+  .sidebar-prog-fill { height: 100%; background: linear-gradient(90deg, var(--logic), #80deea); border-radius: 4px; transition: width .5s; }
+  .sidebar-prog-lbl { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+
+  .hamburger {
+    display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    width: 40px; height: 40px; cursor: pointer; align-items: center;
+    justify-content: center; flex-direction: column; gap: 5px;
+  }
+  .hamburger span { display: block; width: 20px; height: 2px; background: var(--logic); border-radius: 2px; }
+
+  .main { margin-left: var(--sidebar-w); min-height: 100vh; padding: 0 0 80px; }
+  .topbar {
+    padding: 18px 40px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(8,6,0,.9); backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .lang-badge {
+    background: rgba(0,188,212,.15); color: var(--logic);
+    border: 1px solid rgba(0,188,212,.3); border-radius: 6px;
+    padding: 2px 10px; font-size: .75rem; font-weight: 700;
+  }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+
+  .module { padding: 40px 40px 60px; border-bottom: 1px solid var(--border); scroll-margin-top: 72px; }
+  .mod-title { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .mod-title .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--logic), #80deea);
+    color: #000; font-weight: 800; font-size: .88rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mod-title h2 { font-size: 1.5rem; font-weight: 800; }
+  .mod-title .badge { margin-left: auto; padding: 3px 10px; background: rgba(255,106,0,.1); color: var(--muted); border-radius: 99px; font-size: .72rem; }
+  .mod-title .badge.done-badge { background: rgba(76,175,80,.15); color: var(--green); }
+
+  .content-block { max-width: 780px; }
+  .content-block h3 { font-size: 1.1rem; color: var(--logic); margin: 28px 0 10px; }
+  .content-block h4 { font-size: .95rem; color: #80deea; margin: 20px 0 8px; }
+  .content-block p { font-size: .93rem; line-height: 1.75; color: #d8d0c0; margin-bottom: 12px; }
+  .content-block ul, .content-block ol { padding-left: 22px; margin-bottom: 14px; }
+  .content-block li { font-size: .93rem; line-height: 1.7; color: #d8d0c0; margin-bottom: 4px; }
+  .content-block strong { color: var(--text); }
+  .content-block code { background: rgba(0,188,212,.1); color: #80deea; padding: 1px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: .87em; }
+
+  /* ─── Pseudocode block ─── */
+  .pseudo {
+    background: #030c10;
+    border: 1px solid rgba(0,188,212,.22);
+    border-left: 4px solid var(--logic);
+    border-radius: 0 10px 10px 0;
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .85rem;
+    line-height: 1.75;
+    margin: 16px 0;
+    color: #b2e0e8;
+    white-space: pre;
+  }
+  .pseudo .kw  { color: #4dd0e1; font-weight: 700; }
+  .pseudo .val { color: #a5d6a7; }
+  .pseudo .str { color: #ffcc80; }
+  .pseudo .cmt { color: #37474f; font-style: italic; }
+  .pseudo .var { color: #ef9a9a; }
+
+  /* ─── Flowchart block ─── */
+  .flow {
+    background: #030c10;
+    border: 1px solid rgba(0,188,212,.15);
+    border-radius: 10px;
+    padding: 20px 22px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .83rem;
+    line-height: 1.7;
+    margin: 16px 0;
+    color: #90a4ae;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ─── Info boxes ─── */
+  .info-box  { background: rgba(255,106,0,.07);  border-left: 4px solid var(--orange); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0; }
+  .warn-box  { background: rgba(244,67,54,.08);  border-left: 4px solid var(--red);    border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0; }
+  .logic-box { background: rgba(0,188,212,.07);  border-left: 4px solid var(--logic);  border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0; }
+
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .86rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 14px; text-align: left; }
+  th { background: rgba(0,188,212,.1); color: var(--logic); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ─── YouTube embed ─── */
+  .video-section {
+    background: rgba(0,188,212,.05);
+    border: 1px solid rgba(0,188,212,.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+  .video-section .label {
+    color: var(--logic); font-size: .75rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .video-section .label::before {
+    content: '▶';
+    display: inline-block;
+    width: 22px; height: 22px;
+    background: var(--logic); color: #000;
+    border-radius: 50%;
+    font-size: .65rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .video-section p { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+  .video-wrapper {
+    position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+    border-radius: 10px; background: #000;
+  }
+  .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
+  /* ─── Quiz ─── */
+  .quiz-section { margin-top: 36px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 26px 28px; max-width: 780px; }
+  .quiz-section h3 { font-size: 1rem; color: var(--logic); margin-bottom: 18px; }
+  .quiz-item { margin-bottom: 22px; }
+  .quiz-item .question { font-size: .92rem; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+  .options { display: flex; flex-direction: column; gap: 7px; }
+  .opt-btn { background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; text-align: left; cursor: pointer; font-size: .87rem; color: var(--text); transition: all .15s; }
+  .opt-btn:hover:not([disabled]) { background: rgba(0,188,212,.1); border-color: var(--logic); }
+  .opt-btn.correct { background: rgba(76,175,80,.15); border-color: var(--green); color: var(--green); }
+  .opt-btn.wrong   { background: rgba(244,67,54,.12); border-color: var(--red); color: var(--red); }
+  .explanation { font-size: .82rem; color: var(--muted); margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,.03); border-radius: 6px; line-height: 1.55; }
+  .quiz-done-msg { text-align: center; padding: 14px; color: var(--green); font-weight: 700; font-size: .95rem; margin-top: 10px; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .hamburger { display: flex; }
+    .module { padding: 60px 20px 40px; }
+    .topbar { padding: 14px 20px; }
+    .quiz-section { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">← Voltar ao início</a>
+    <h3>Trilha Lógica</h3>
+    <p>Lógica de Programação · 6 módulos · 30 questões</p>
+  </div>
+  <div class="sidebar-prog">
+    <div class="sidebar-prog-bar"><div class="sidebar-prog-fill" id="sb-prog" style="width:0%"></div></div>
+    <div class="sidebar-prog-lbl" id="sb-lbl">0 / 6 concluídos</div>
+  </div>
+  <a class="mod-link" href="#mod1" id="link-mod1" onclick="closeSidebar()"><span class="mod-num">1</span> Algoritmos</a>
+  <a class="mod-link" href="#mod2" id="link-mod2" onclick="closeSidebar()"><span class="mod-num">2</span> Variáveis e Dados</a>
+  <a class="mod-link" href="#mod3" id="link-mod3" onclick="closeSidebar()"><span class="mod-num">3</span> Expressões</a>
+  <a class="mod-link" href="#mod4" id="link-mod4" onclick="closeSidebar()"><span class="mod-num">4</span> Decisão</a>
+  <a class="mod-link" href="#mod5" id="link-mod5" onclick="closeSidebar()"><span class="mod-num">5</span> Repetição</a>
+  <a class="mod-link" href="#mod6" id="link-mod6" onclick="closeSidebar()"><span class="mod-num">6</span> Funções</a>
+</nav>
+
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="main">
+  <div class="topbar">
+    <span class="lang-badge">LÓGICA</span>
+    <h1>Trilha Lógica de Programação — do zero ao algoritmo</h1>
+  </div>
+
+  <!-- ══════════════ MODULE 1 ══════════════ -->
+  <section class="module" id="mod1">
+    <div class="mod-title">
+      <div class="num">1</div>
+      <h2>Algoritmos e Pensamento Computacional</h2>
+      <span class="badge" id="badge-mod1">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>O que é um algoritmo?</h3>
+      <p>Um <strong>algoritmo</strong> é uma sequência de passos bem definidos, ordenados e finitos que resolve um problema ou realiza uma tarefa. Você já usa algoritmos todos os dias sem perceber.</p>
+      <p>Exemplo cotidiano — como fazer um café:</p>
+<div class="flow">
+Passo 1: Encher a chaleira com água
+Passo 2: Ligar a chaleira
+Passo 3: Enquanto a água não ferver, esperar
+Passo 4: Colocar pó de café no coador
+Passo 5: Despejar a água quente sobre o coador
+Passo 6: Aguardar coar
+Passo 7: FIM — café pronto</div>
+
+      <p>Um computador funciona exatamente assim: você escreve os passos (o <em>programa</em>), e ele os executa um por um, sem pular nenhum e sem "adivinhar" o que você quer.</p>
+
+      <h3>Características de um bom algoritmo</h3>
+      <table>
+        <tr><th>Característica</th><th>Significado</th><th>Exemplo de violação</th></tr>
+        <tr><td><strong>Preciso</strong></td><td>Cada passo é claro, sem ambiguidade</td><td>"Aqueça um pouco a água" — quanto é um pouco?</td></tr>
+        <tr><td><strong>Finito</strong></td><td>O algoritmo termina após um número finito de passos</td><td>"Repita até o café ficar bom" — sem critério de parada definido</td></tr>
+        <tr><td><strong>Eficaz</strong></td><td>Cada passo é viável e resolve o problema proposto</td><td>"Ferver água com o pensamento" — impossível executar</td></tr>
+        <tr><td><strong>Entradas/Saídas</strong></td><td>Define claramente o que recebe e o que produz</td><td>Algoritmo sem resultado definido</td></tr>
+      </table>
+
+      <h3>Representações de algoritmos</h3>
+      <p>Um algoritmo pode ser escrito de três formas principais:</p>
+      <ul>
+        <li><strong>Linguagem natural:</strong> texto em português comum — impreciso, pode ser ambíguo</li>
+        <li><strong>Pseudocódigo:</strong> português estruturado com palavras-chave reservadas — claro e padronizado</li>
+        <li><strong>Fluxograma:</strong> diagrama visual com símbolos — fácil de visualizar o fluxo</li>
+      </ul>
+
+      <h3>Pseudocódigo</h3>
+      <p>Pseudocódigo é uma forma de escrever algoritmos em português estruturado, com palavras reservadas como <code>SE</code>, <code>ENQUANTO</code>, <code>LEIA</code> e <code>ESCREVA</code>. Não é uma linguagem de programação real — é só uma ferramenta para pensar.</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">ESCREVA</span> <span class="str">"Qual é o seu nome?"</span>
+  <span class="kw">LEIA</span> <span class="var">nome</span>
+  <span class="kw">ESCREVA</span> <span class="str">"Olá, "</span> + <span class="var">nome</span> + <span class="str">"! Bem-vindo à lógica de programação."</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>Fluxograma</h3>
+      <p>O fluxograma usa símbolos visuais para representar o fluxo do algoritmo:</p>
+      <table>
+        <tr><th>Símbolo</th><th>Forma</th><th>Representa</th></tr>
+        <tr><td>Oval</td><td>( INÍCIO / FIM )</td><td>Ponto de início ou fim do algoritmo</td></tr>
+        <tr><td>Retângulo</td><td>[ Ação ]</td><td>Processamento / instrução</td></tr>
+        <tr><td>Losango</td><td>◇ Condição? ◇</td><td>Decisão (sim/não)</td></tr>
+        <tr><td>Paralelogramo</td><td>/ Dado /</td><td>Entrada (LEIA) ou saída (ESCREVA)</td></tr>
+        <tr><td>Seta</td><td>→</td><td>Direção do fluxo</td></tr>
+      </table>
+
+      <p>Exemplo de fluxograma — verificar se um número é positivo:</p>
+<div class="flow">        ╔═══════════╗
+        ║   INÍCIO  ║
+        ╚═════╤═════╝
+              ↓
+        ╔═══════════════╗
+        ║  / LEIA num / ║   ← entrada do usuário
+        ╚═════╤═════════╝
+              ↓
+         ◇ num > 0? ◇
+        ╱              ╲
+      SIM               NÃO
+       ↓                 ↓
+  ╔══════════╗     ╔══════════════╗
+  ║ ESCREVA  ║     ║   ESCREVA    ║
+  ║"Positivo"║     ║"Não positivo"║
+  ╚════╤═════╝     ╚══════╤═══════╝
+       └────────┬──────────┘
+                ↓
+          ╔═══════════╗
+          ║    FIM    ║
+          ╚═══════════╝</div>
+
+      <div class="logic-box">
+        <strong>Pensamento computacional</strong> é a habilidade de decompor problemas em passos lógicos que um computador (ou qualquer executor) consegue seguir. Não exige computador — você pode "executar" qualquer algoritmo na cabeça ou no papel.
+      </div>
+
+      <!-- Material auxiliar: playlist YouTube -->
+      <div class="video-section">
+        <div class="label">Material auxiliar — Playlist recomendada</div>
+        <p>Assista à playlist completa de Lógica de Programação para reforçar os conceitos desta trilha com exemplos visuais e explicações em vídeo:</p>
+        <div class="video-wrapper">
+          <iframe
+            src="https://www.youtube.com/embed/CLiNnS92rCg?list=PLHVpcBDJr5dnK52SZvuA-cAA3DnqRJ6nz"
+            title="Lógica de Programação — Playlist completa"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 1</h3>
+      <div id="quiz-mod1"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 2 ══════════════ -->
+  <section class="module" id="mod2">
+    <div class="mod-title">
+      <div class="num">2</div>
+      <h2>Variáveis e Tipos de Dados</h2>
+      <span class="badge" id="badge-mod2">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>O que é uma variável?</h3>
+      <p>Imagine uma <strong>caixa com um nome colado</strong> na frente. Você pode guardar um valor dentro dela, consultar o valor atual e substituir por outro valor. Isso é uma variável.</p>
+      <p>Uma variável tem três propriedades:</p>
+      <ul>
+        <li><strong>Nome (identificador):</strong> como a caixa se chama — ex.: <code>nota</code>, <code>nomeAluno</code>, <code>temperatura</code></li>
+        <li><strong>Tipo:</strong> que tipo de valor pode guardar — número, texto, verdadeiro/falso</li>
+        <li><strong>Valor atual:</strong> o conteúdo guardado no momento</li>
+      </ul>
+
+      <h3>Tipos de dados</h3>
+      <table>
+        <tr><th>Tipo</th><th>O que armazena</th><th>Exemplos</th></tr>
+        <tr><td><strong>Inteiro</strong></td><td>Números sem parte decimal</td><td>0, 42, -7, 1000</td></tr>
+        <tr><td><strong>Real</strong></td><td>Números com parte decimal</td><td>3.14, -2.7, 8.5, 0.001</td></tr>
+        <tr><td><strong>Texto</strong></td><td>Sequência de caracteres (letras, números, símbolos)</td><td>"João", "Senna v4", "OK", "123abc"</td></tr>
+        <tr><td><strong>Lógico</strong></td><td>Apenas dois valores: verdadeiro ou falso</td><td>VERDADEIRO, FALSO</td></tr>
+      </table>
+      <div class="logic-box">Textos são sempre escritos entre aspas duplas: <code>"assim"</code>. Números não levam aspas: <code>42</code>. Essa diferença é fundamental — <code>"42"</code> é texto (não serve para cálculo), e <code>42</code> é número.</div>
+
+      <h3>Declaração e atribuição</h3>
+      <p>Declarar uma variável é criar a caixa e dar um nome a ela. Atribuir é colocar um valor dentro.</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="cmt">// Declaração: criando as variáveis</span>
+  <span class="var">nome</span>        : <span class="kw">Texto</span>
+  <span class="var">idade</span>       : <span class="kw">Inteiro</span>
+  <span class="var">nota</span>        : <span class="kw">Real</span>
+  <span class="var">aprovado</span>    : <span class="kw">Lógico</span>
+
+  <span class="cmt">// Atribuição: colocando valores (← significa "recebe")</span>
+  <span class="var">nome</span>     ← <span class="str">"Maria"</span>
+  <span class="var">idade</span>    ← <span class="val">17</span>
+  <span class="var">nota</span>     ← <span class="val">8.5</span>
+  <span class="var">aprovado</span> ← <span class="kw">VERDADEIRO</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>Entrada e saída de dados</h3>
+      <p>Todo algoritmo útil precisa se comunicar: receber dados do usuário (<strong>entrada</strong>) e mostrar resultados (<strong>saída</strong>).</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">ESCREVA</span> <span class="str">"Digite sua nota:"</span>          <span class="cmt">// saída: exibe mensagem na tela</span>
+  <span class="kw">LEIA</span> <span class="var">nota</span>                          <span class="cmt">// entrada: lê valor do teclado para a variável</span>
+
+  <span class="kw">ESCREVA</span> <span class="str">"Sua nota foi: "</span> + <span class="var">nota</span>    <span class="cmt">// exibe o valor da variável</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>Constantes</h3>
+      <p>Uma <strong>constante</strong> é como uma variável, mas seu valor é definido uma vez e <em>nunca muda</em> durante o algoritmo. Serve para valores fixos que têm significado especial.</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">CONSTANTE</span> PI     ← <span class="val">3.14159</span>
+  <span class="kw">CONSTANTE</span> LIMITE ← <span class="val">100</span>
+
+  <span class="cmt">// PI e LIMITE não podem ser alterados depois desta definição</span>
+<span class="kw">FIM</span></pre>
+      <div class="info-box">Por convenção, nomes de constantes são escritos em MAIÚSCULAS para diferenciá-las de variáveis. Isso facilita a leitura do algoritmo.</div>
+
+      <h3>Boas práticas para nomear variáveis</h3>
+      <ul>
+        <li>Use nomes descritivos: <code>notaFinal</code> é melhor que <code>n</code></li>
+        <li>Sem espaços: use letras maiúsculas para separar palavras (<em>camelCase</em>): <code>nomeCompleto</code></li>
+        <li>Sem acentos ou caracteres especiais: <code>media</code> em vez de <code>média</code></li>
+        <li>O nome deve dizer o que a variável guarda</li>
+      </ul>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 2</h3>
+      <div id="quiz-mod2"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 3 ══════════════ -->
+  <section class="module" id="mod3">
+    <div class="mod-title">
+      <div class="num">3</div>
+      <h2>Expressões e Operadores</h2>
+      <span class="badge" id="badge-mod3">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Operadores aritméticos</h3>
+      <p>Usados para fazer cálculos matemáticos com números.</p>
+      <table>
+        <tr><th>Operador</th><th>Operação</th><th>Exemplo</th><th>Resultado</th></tr>
+        <tr><td><code>+</code></td><td>Adição</td><td>10 + 3</td><td>13</td></tr>
+        <tr><td><code>-</code></td><td>Subtração</td><td>10 - 3</td><td>7</td></tr>
+        <tr><td><code>*</code></td><td>Multiplicação</td><td>10 * 3</td><td>30</td></tr>
+        <tr><td><code>/</code></td><td>Divisão (real)</td><td>10 / 3</td><td>3.333...</td></tr>
+        <tr><td><code>DIV</code></td><td>Divisão inteira (quociente)</td><td>10 DIV 3</td><td>3</td></tr>
+        <tr><td><code>MOD</code></td><td>Resto da divisão</td><td>10 MOD 3</td><td>1</td></tr>
+      </table>
+      <div class="logic-box"><strong>MOD é muito útil!</strong> Para saber se um número é par: se <code>numero MOD 2 = 0</code>, é par. Para saber se é divisível por N: se <code>numero MOD N = 0</code>, é divisível.</div>
+
+      <h3>Precedência de operadores</h3>
+      <p>Assim como na matemática, a ordem das operações importa:</p>
+<pre class="pseudo"><span class="cmt">// Precedência (do mais alto ao mais baixo):</span>
+<span class="cmt">// 1. ( )           → parênteses são calculados primeiro</span>
+<span class="cmt">// 2. *  /  DIV MOD → multiplicação e divisão</span>
+<span class="cmt">// 3. +  -           → adição e subtração</span>
+
+<span class="cmt">// Exemplos:</span>
+<span class="val">2</span> + <span class="val">3</span> * <span class="val">4</span>         = <span class="val">14</span>    <span class="cmt">// 3*4 primeiro → 2+12</span>
+(<span class="val">2</span> + <span class="val">3</span>) * <span class="val">4</span>      = <span class="val">20</span>    <span class="cmt">// parênteses primeiro → 5*4</span>
+<span class="val">10</span> - <span class="val">4</span> / <span class="val">2</span> + <span class="val">1</span>  = <span class="val">9</span>     <span class="cmt">// 4/2=2, depois 10-2+1</span></pre>
+
+      <h3>Operadores relacionais</h3>
+      <p>Comparam dois valores e produzem um resultado <strong>lógico</strong> (VERDADEIRO ou FALSO).</p>
+      <table>
+        <tr><th>Operador</th><th>Significado</th><th>Exemplo</th><th>Resultado</th></tr>
+        <tr><td><code>=</code></td><td>Igual a</td><td>5 = 5</td><td>VERDADEIRO</td></tr>
+        <tr><td><code>≠</code> ou <code>&lt;&gt;</code></td><td>Diferente de</td><td>5 ≠ 3</td><td>VERDADEIRO</td></tr>
+        <tr><td><code>&gt;</code></td><td>Maior que</td><td>7 &gt; 10</td><td>FALSO</td></tr>
+        <tr><td><code>&lt;</code></td><td>Menor que</td><td>3 &lt; 8</td><td>VERDADEIRO</td></tr>
+        <tr><td><code>≥</code> ou <code>&gt;=</code></td><td>Maior ou igual a</td><td>7 ≥ 7</td><td>VERDADEIRO</td></tr>
+        <tr><td><code>≤</code> ou <code>&lt;=</code></td><td>Menor ou igual a</td><td>5 ≤ 4</td><td>FALSO</td></tr>
+      </table>
+
+      <h3>Operadores lógicos</h3>
+      <p>Combinam resultados lógicos para criar condições mais complexas.</p>
+      <table>
+        <tr><th>Operador</th><th>Resultado</th></tr>
+        <tr><td><code>E</code> (AND)</td><td>VERDADEIRO <strong>apenas</strong> quando os dois lados são VERDADEIRO</td></tr>
+        <tr><td><code>OU</code> (OR)</td><td>VERDADEIRO quando <strong>pelo menos um</strong> lado é VERDADEIRO</td></tr>
+        <tr><td><code>NÃO</code> (NOT)</td><td>Inverte o valor — VERDADEIRO vira FALSO e vice-versa</td></tr>
+      </table>
+<pre class="pseudo"><span class="cmt">// Tabela verdade do operador E:</span>
+VERDADEIRO <span class="kw">E</span> VERDADEIRO = VERDADEIRO
+VERDADEIRO <span class="kw">E</span> FALSO      = FALSO
+FALSO      <span class="kw">E</span> VERDADEIRO = FALSO
+FALSO      <span class="kw">E</span> FALSO      = FALSO
+
+<span class="cmt">// Tabela verdade do operador OU:</span>
+VERDADEIRO <span class="kw">OU</span> VERDADEIRO = VERDADEIRO
+VERDADEIRO <span class="kw">OU</span> FALSO      = VERDADEIRO
+FALSO      <span class="kw">OU</span> VERDADEIRO = VERDADEIRO
+FALSO      <span class="kw">OU</span> FALSO      = FALSO</pre>
+
+      <h3>Expressões mistas — juntando tudo</h3>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="var">nota1</span>     : <span class="kw">Real</span>
+  <span class="var">nota2</span>     : <span class="kw">Real</span>
+  <span class="var">media</span>     : <span class="kw">Real</span>
+  <span class="var">presenca</span>  : <span class="kw">Inteiro</span>
+  <span class="var">aprovado</span>  : <span class="kw">Lógico</span>
+
+  <span class="kw">LEIA</span> <span class="var">nota1</span>, <span class="var">nota2</span>, <span class="var">presenca</span>
+
+  <span class="var">media</span>    ← (<span class="var">nota1</span> + <span class="var">nota2</span>) / <span class="val">2</span>
+
+  <span class="cmt">// Condição composta: precisa de nota E presença</span>
+  <span class="var">aprovado</span> ← (<span class="var">media</span> >= <span class="val">7</span>) <span class="kw">E</span> (<span class="var">presenca</span> >= <span class="val">75</span>)
+
+  <span class="kw">ESCREVA</span> <span class="str">"Média: "</span> + <span class="var">media</span>
+  <span class="kw">ESCREVA</span> <span class="str">"Aprovado: "</span> + <span class="var">aprovado</span>
+<span class="kw">FIM</span></pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 3</h3>
+      <div id="quiz-mod3"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 4 ══════════════ -->
+  <section class="module" id="mod4">
+    <div class="mod-title">
+      <div class="num">4</div>
+      <h2>Estruturas de Decisão</h2>
+      <span class="badge" id="badge-mod4">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Por que decidir?</h3>
+      <p>Algoritmos precisam tomar decisões: se uma condição for verdadeira, faça uma coisa; caso contrário, faça outra. Sem estruturas de decisão, todo algoritmo executaria sempre os mesmos passos, independente dos dados.</p>
+
+      <h3>SE simples</h3>
+      <p>Executa um bloco de instruções <em>somente se</em> a condição for verdadeira. Se for falsa, pula o bloco.</p>
+<pre class="pseudo"><span class="kw">SE</span> condição <span class="kw">ENTÃO</span>
+    instruções executadas apenas se condição = VERDADEIRO
+<span class="kw">FIM SE</span></pre>
+
+      <p>Exemplo — verificar maioridade:</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">LEIA</span> <span class="var">idade</span>
+
+  <span class="kw">SE</span> <span class="var">idade</span> >= <span class="val">18</span> <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Você é maior de idade."</span>
+  <span class="kw">FIM SE</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>SE/SENÃO</h3>
+      <p>Quando a condição é falsa, executa um bloco alternativo.</p>
+<pre class="pseudo"><span class="kw">SE</span> condição <span class="kw">ENTÃO</span>
+    instruções se VERDADEIRO
+<span class="kw">SENÃO</span>
+    instruções se FALSO
+<span class="kw">FIM SE</span></pre>
+
+      <p>Exemplo — aprovação:</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">LEIA</span> <span class="var">nota</span>
+
+  <span class="kw">SE</span> <span class="var">nota</span> >= <span class="val">7</span> <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Aprovado!"</span>
+  <span class="kw">SENÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Reprovado. Nota insuficiente."</span>
+  <span class="kw">FIM SE</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>SE encadeado — múltiplas condições</h3>
+      <p>Para verificar várias condições em sequência, encadeia-se SE dentro de SENÃO:</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">LEIA</span> <span class="var">nota</span>
+
+  <span class="kw">SE</span> <span class="var">nota</span> >= <span class="val">9</span> <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Conceito A — Excelente!"</span>
+  <span class="kw">SENÃO SE</span> <span class="var">nota</span> >= <span class="val">7</span> <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Conceito B — Bom."</span>
+  <span class="kw">SENÃO SE</span> <span class="var">nota</span> >= <span class="val">5</span> <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Conceito C — Regular."</span>
+  <span class="kw">SENÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Conceito D — Insuficiente."</span>
+  <span class="kw">FIM SE</span>
+<span class="kw">FIM</span></pre>
+
+      <div class="logic-box">As condições são testadas <strong>de cima para baixo</strong>. Assim que uma condição for VERDADEIRA, o bloco correspondente é executado e o restante é ignorado. Por isso, coloque as condições mais específicas primeiro.</div>
+
+      <h3>Condições compostas com E / OU</h3>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">LEIA</span> <span class="var">nota</span>, <span class="var">presenca</span>
+
+  <span class="kw">SE</span> (<span class="var">nota</span> >= <span class="val">7</span>) <span class="kw">E</span> (<span class="var">presenca</span> >= <span class="val">75</span>) <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Aprovado por nota e presença."</span>
+  <span class="kw">SENÃO SE</span> (<span class="var">nota</span> >= <span class="val">5</span>) <span class="kw">E</span> (<span class="var">presenca</span> >= <span class="val">75</span>) <span class="kw">ENTÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Em recuperação."</span>
+  <span class="kw">SENÃO</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Reprovado."</span>
+  <span class="kw">FIM SE</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>Fluxograma de decisão</h3>
+<div class="flow">           ╔═══════════╗
+           ║   INÍCIO  ║
+           ╚═════╤═════╝
+                 ↓
+          ╔═════════════════╗
+          ║ / LEIA nota /   ║
+          ╚═══════╤═════════╝
+                  ↓
+          ◇ nota >= 7? ◇
+         ╱               ╲
+       SIM               NÃO
+        ↓                  ↓
+  ╔═══════════╗     ╔════════════╗
+  ║ ESCREVA   ║     ║  ESCREVA   ║
+  ║"Aprovado" ║     ║"Reprovado" ║
+  ╚═════╤═════╝     ╚══════╤═════╝
+        └──────────┬────────┘
+                   ↓
+            ╔═══════════╗
+            ║    FIM    ║
+            ╚═══════════╝</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 4</h3>
+      <div id="quiz-mod4"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 5 ══════════════ -->
+  <section class="module" id="mod5">
+    <div class="mod-title">
+      <div class="num">5</div>
+      <h2>Estruturas de Repetição</h2>
+      <span class="badge" id="badge-mod5">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Por que repetir?</h3>
+      <p>Imagine que você precisa exibir os números de 1 a 1000. Sem repetição, seria necessário escrever 1000 linhas de <code>ESCREVA</code>. Com uma estrutura de repetição, são apenas 3 linhas.</p>
+      <p>Estruturas de repetição (<strong>laços</strong> ou <strong>loops</strong>) executam um bloco de instruções várias vezes, enquanto uma condição for verdadeira ou por um número determinado de vezes.</p>
+
+      <h3>ENQUANTO — repetição com pré-teste</h3>
+      <p>A condição é testada <em>antes</em> de cada repetição. Se for falsa logo no início, o bloco nem é executado uma vez.</p>
+<pre class="pseudo"><span class="kw">ENQUANTO</span> condição <span class="kw">FAÇA</span>
+    instruções repetidas enquanto condição = VERDADEIRO
+<span class="kw">FIM ENQUANTO</span></pre>
+
+      <p>Exemplo — contagem regressiva:</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="var">contador</span> ← <span class="val">10</span>
+
+  <span class="kw">ENQUANTO</span> <span class="var">contador</span> > <span class="val">0</span> <span class="kw">FAÇA</span>
+    <span class="kw">ESCREVA</span> <span class="var">contador</span>
+    <span class="var">contador</span> ← <span class="var">contador</span> - <span class="val">1</span>   <span class="cmt">// atualiza a variável de controle!</span>
+  <span class="kw">FIM ENQUANTO</span>
+
+  <span class="kw">ESCREVA</span> <span class="str">"Lançar!"</span>
+<span class="kw">FIM</span>
+
+<span class="cmt">// Saída: 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, Lançar!</span></pre>
+
+      <h3>PARA — repetição por contagem</h3>
+      <p>Usado quando sabemos exatamente quantas vezes queremos repetir. O próprio laço gerencia a variável de controle.</p>
+<pre class="pseudo"><span class="kw">PARA</span> <span class="var">variavel</span> <span class="kw">DE</span> inicio <span class="kw">ATÉ</span> fim <span class="kw">FAÇA</span>
+    instruções
+<span class="kw">FIM PARA</span></pre>
+
+      <p>Exemplo — soma de 1 a N:</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="var">n</span>    : <span class="kw">Inteiro</span>
+  <span class="var">soma</span> : <span class="kw">Inteiro</span>
+  <span class="var">i</span>    : <span class="kw">Inteiro</span>
+
+  <span class="kw">LEIA</span> <span class="var">n</span>
+  <span class="var">soma</span> ← <span class="val">0</span>
+
+  <span class="kw">PARA</span> <span class="var">i</span> <span class="kw">DE</span> <span class="val">1</span> <span class="kw">ATÉ</span> <span class="var">n</span> <span class="kw">FAÇA</span>
+    <span class="var">soma</span> ← <span class="var">soma</span> + <span class="var">i</span>     <span class="cmt">// acumulador</span>
+  <span class="kw">FIM PARA</span>
+
+  <span class="kw">ESCREVA</span> <span class="str">"A soma de 1 a "</span> + <span class="var">n</span> + <span class="str">" é "</span> + <span class="var">soma</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>REPITA ATÉ — repetição com pós-teste</h3>
+      <p>A condição é testada <em>depois</em> de cada repetição. O bloco é executado pelo menos uma vez, mesmo que a condição já seja verdadeira no início.</p>
+<pre class="pseudo"><span class="kw">REPITA</span>
+    instruções executadas ao menos uma vez
+<span class="kw">ATÉ</span> condição de parada</pre>
+
+      <p>Exemplo — validar entrada do usuário:</p>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="kw">REPITA</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Digite uma nota entre 0 e 10:"</span>
+    <span class="kw">LEIA</span> <span class="var">nota</span>
+  <span class="kw">ATÉ</span> (<span class="var">nota</span> >= <span class="val">0</span>) <span class="kw">E</span> (<span class="var">nota</span> <= <span class="val">10</span>)
+  <span class="cmt">// Garante que nota é válida antes de continuar</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>Acumuladores e contadores</h3>
+      <table>
+        <tr><th>Conceito</th><th>O que faz</th><th>Exemplo de uso</th></tr>
+        <tr><td><strong>Contador</strong></td><td>Conta quantas vezes algo aconteceu</td><td><code>cont ← cont + 1</code></td></tr>
+        <tr><td><strong>Acumulador</strong></td><td>Soma valores ao longo das repetições</td><td><code>soma ← soma + valor</code></td></tr>
+      </table>
+<pre class="pseudo"><span class="kw">INÍCIO</span>
+  <span class="var">soma</span>    ← <span class="val">0</span>    <span class="cmt">// acumulador começa em 0</span>
+  <span class="var">contPar</span> ← <span class="val">0</span>    <span class="cmt">// contador começa em 0</span>
+
+  <span class="kw">PARA</span> <span class="var">i</span> <span class="kw">DE</span> <span class="val">1</span> <span class="kw">ATÉ</span> <span class="val">10</span> <span class="kw">FAÇA</span>
+    <span class="var">soma</span> ← <span class="var">soma</span> + <span class="var">i</span>          <span class="cmt">// acumula a soma</span>
+    <span class="kw">SE</span> <span class="var">i</span> <span class="kw">MOD</span> <span class="val">2</span> = <span class="val">0</span> <span class="kw">ENTÃO</span>
+      <span class="var">contPar</span> ← <span class="var">contPar</span> + <span class="val">1</span>  <span class="cmt">// conta os pares</span>
+    <span class="kw">FIM SE</span>
+  <span class="kw">FIM PARA</span>
+
+  <span class="kw">ESCREVA</span> <span class="str">"Soma: "</span> + <span class="var">soma</span>        <span class="cmt">// 55</span>
+  <span class="kw">ESCREVA</span> <span class="str">"Pares: "</span> + <span class="var">contPar</span>    <span class="cmt">// 5</span>
+<span class="kw">FIM</span></pre>
+
+      <div class="warn-box"><strong>Loop infinito:</strong> se a condição de parada nunca se tornar verdadeira, o algoritmo fica rodando para sempre. Sempre verifique que a variável de controle é atualizada dentro do loop, aproximando-se da condição de parada.</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 5</h3>
+      <div id="quiz-mod5"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 6 ══════════════ -->
+  <section class="module" id="mod6">
+    <div class="mod-title">
+      <div class="num">6</div>
+      <h2>Funções e Modularização</h2>
+      <span class="badge" id="badge-mod6">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Dividir para conquistar</h3>
+      <p>Programas do mundo real são grandes e complexos. A solução é dividir o problema em partes menores, resolver cada parte separadamente e depois juntar tudo. Isso se chama <strong>modularização</strong>.</p>
+      <p>Analogia: construir uma casa. Não existe uma pessoa só que faz tudo. Tem pedreiro, eletricista, encanador — cada um especialista em uma parte. Funções funcionam igual: cada uma é especialista em uma tarefa específica.</p>
+
+      <h3>O que é uma função?</h3>
+      <p>Uma <strong>função</strong> é um bloco de instruções com nome que resolve uma tarefa específica. Pode ser chamada (executada) de qualquer ponto do algoritmo, quantas vezes for necessário — sem repetir o código.</p>
+      <p>Vantagens:</p>
+      <ul>
+        <li><strong>Reutilização:</strong> escreva uma vez, use em vários lugares</li>
+        <li><strong>Legibilidade:</strong> o código principal fica menor e mais fácil de entender</li>
+        <li><strong>Manutenção:</strong> corrigir um erro em uma função conserta todos os usos dela</li>
+        <li><strong>Teste:</strong> cada função pode ser testada isoladamente</li>
+      </ul>
+
+      <h3>Estrutura de uma função</h3>
+<pre class="pseudo"><span class="kw">FUNÇÃO</span> <span class="val">nomeDaFuncao</span>(<span class="var">parametro1</span>: Tipo, <span class="var">parametro2</span>: Tipo) : TipoRetorno
+    <span class="cmt">// variáveis locais (só existem dentro desta função)</span>
+    instruções
+
+    <span class="kw">RETORNE</span> valor
+<span class="kw">FIM FUNÇÃO</span></pre>
+
+      <p>Exemplo — calcular média de duas notas:</p>
+<pre class="pseudo"><span class="kw">FUNÇÃO</span> <span class="val">calcularMedia</span>(<span class="var">n1</span>: Real, <span class="var">n2</span>: Real) : Real
+    <span class="var">media</span> : Real
+
+    <span class="var">media</span> ← (<span class="var">n1</span> + <span class="var">n2</span>) / <span class="val">2</span>
+    <span class="kw">RETORNE</span> <span class="var">media</span>
+<span class="kw">FIM FUNÇÃO</span>
+
+<span class="kw">INÍCIO</span>  <span class="cmt">// programa principal</span>
+  <span class="var">m1</span> ← <span class="val">calcularMedia</span>(<span class="val">8.0</span>, <span class="val">9.0</span>)   <span class="cmt">// chama a função → retorna 8.5</span>
+  <span class="var">m2</span> ← <span class="val">calcularMedia</span>(<span class="val">5.5</span>, <span class="val">6.5</span>)   <span class="cmt">// reutiliza a função → retorna 6.0</span>
+
+  <span class="kw">ESCREVA</span> <span class="str">"Médias: "</span> + <span class="var">m1</span> + <span class="str">" e "</span> + <span class="var">m2</span>
+<span class="kw">FIM</span></pre>
+
+      <h3>Parâmetros e retorno</h3>
+      <table>
+        <tr><th>Conceito</th><th>O que é</th><th>Analogia</th></tr>
+        <tr><td><strong>Parâmetros</strong></td><td>Valores que a função recebe como entrada</td><td>Ingredientes que você dá ao cozinheiro</td></tr>
+        <tr><td><strong>Retorno</strong></td><td>Valor que a função produz como resultado</td><td>O prato que o cozinheiro devolve</td></tr>
+      </table>
+
+      <h3>Procedimentos — funções sem retorno</h3>
+      <p>Um <strong>procedimento</strong> executa ações mas não retorna um valor. É útil para tarefas como exibir mensagens ou atualizar dados.</p>
+<pre class="pseudo"><span class="kw">PROCEDIMENTO</span> <span class="val">exibirSaudacao</span>(<span class="var">nome</span>: Texto)
+    <span class="kw">ESCREVA</span> <span class="str">"════════════════"</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Olá, "</span> + <span class="var">nome</span> + <span class="str">"!"</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Bem-vindo ao sistema."</span>
+    <span class="kw">ESCREVA</span> <span class="str">"════════════════"</span>
+<span class="kw">FIM PROCEDIMENTO</span>
+
+<span class="kw">INÍCIO</span>
+  <span class="val">exibirSaudacao</span>(<span class="str">"Maria"</span>)   <span class="cmt">// chama, não precisa de variável para receber retorno</span>
+  <span class="val">exibirSaudacao</span>(<span class="str">"João"</span>)
+<span class="kw">FIM</span></pre>
+
+      <h3>Escopo de variáveis</h3>
+      <p>O <strong>escopo</strong> define onde uma variável existe e pode ser usada.</p>
+      <table>
+        <tr><th>Tipo</th><th>Onde é declarada</th><th>Onde existe</th></tr>
+        <tr><td><strong>Local</strong></td><td>Dentro de uma função/procedimento</td><td>Apenas dentro daquela função — destruída ao término</td></tr>
+        <tr><td><strong>Global</strong></td><td>Fora de qualquer função</td><td>Em qualquer parte do algoritmo</td></tr>
+      </table>
+<pre class="pseudo"><span class="var">totalGeral</span> : Inteiro   <span class="cmt">// variável GLOBAL — visível em todo o algoritmo</span>
+
+<span class="kw">FUNÇÃO</span> <span class="val">calcularBonus</span>(<span class="var">salario</span>: Real) : Real
+    <span class="var">bonus</span> : Real         <span class="cmt">// variável LOCAL — só existe aqui dentro</span>
+    <span class="var">bonus</span> ← <span class="var">salario</span> * <span class="val">0.1</span>
+    <span class="kw">RETORNE</span> <span class="var">bonus</span>
+<span class="kw">FIM FUNÇÃO</span></pre>
+      <div class="warn-box">Prefira variáveis locais sempre que possível. Variáveis globais tornam o algoritmo difícil de entender e de corrigir, pois qualquer parte do código pode modificá-las — fica difícil rastrear o que mudou e onde.</div>
+
+      <h3>Exemplo completo: classificar turma</h3>
+<pre class="pseudo"><span class="kw">FUNÇÃO</span> <span class="val">classificar</span>(<span class="var">nota</span>: Real) : Texto
+    <span class="kw">SE</span> <span class="var">nota</span> >= <span class="val">9</span> <span class="kw">ENTÃO</span>
+        <span class="kw">RETORNE</span> <span class="str">"A"</span>
+    <span class="kw">SENÃO SE</span> <span class="var">nota</span> >= <span class="val">7</span> <span class="kw">ENTÃO</span>
+        <span class="kw">RETORNE</span> <span class="str">"B"</span>
+    <span class="kw">SENÃO SE</span> <span class="var">nota</span> >= <span class="val">5</span> <span class="kw">ENTÃO</span>
+        <span class="kw">RETORNE</span> <span class="str">"C"</span>
+    <span class="kw">SENÃO</span>
+        <span class="kw">RETORNE</span> <span class="str">"D"</span>
+    <span class="kw">FIM SE</span>
+<span class="kw">FIM FUNÇÃO</span>
+
+<span class="kw">INÍCIO</span>
+  <span class="var">n</span>    : Inteiro
+  <span class="var">nota</span> : Real
+  <span class="var">i</span>    : Inteiro
+
+  <span class="kw">LEIA</span> <span class="var">n</span>   <span class="cmt">// quantos alunos?</span>
+
+  <span class="kw">PARA</span> <span class="var">i</span> <span class="kw">DE</span> <span class="val">1</span> <span class="kw">ATÉ</span> <span class="var">n</span> <span class="kw">FAÇA</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Nota do aluno "</span> + <span class="var">i</span> + <span class="str">":"</span>
+    <span class="kw">LEIA</span> <span class="var">nota</span>
+    <span class="kw">ESCREVA</span> <span class="str">"Conceito: "</span> + <span class="val">classificar</span>(<span class="var">nota</span>)
+  <span class="kw">FIM PARA</span>
+<span class="kw">FIM</span></pre>
+      <div class="logic-box"><strong>Parabéns!</strong> Você chegou ao fim da trilha de lógica. Com algoritmos, variáveis, operadores, decisões, repetição e funções, você tem os blocos fundamentais para aprender qualquer linguagem de programação. O próximo passo é a <strong>Trilha C</strong> — onde esses conceitos ganham sintaxe real!</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 6</h3>
+      <div id="quiz-mod6"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const QUIZZES = {
+  mod1: [
+    { q: 'O que é um algoritmo?',
+      opts: ['Um programa de computador escrito em C','Uma sequência finita de passos bem definidos que resolve um problema','Um diagrama de hardware','Uma linguagem de programação específica'], correct: 1,
+      explain: 'Algoritmo é uma sequência de passos precisa, ordenada e finita para resolver um problema. Não está ligado a nenhuma linguagem — uma receita de bolo é um algoritmo, assim como as instruções de montagem de um móvel.' },
+    { q: 'Qual destas NÃO é uma característica obrigatória de um bom algoritmo?',
+      opts: ['Ser preciso (sem ambiguidade)','Ser finito (ter um fim)','Usar uma linguagem de programação específica','Ser eficaz (resolver o problema)'], correct: 2,
+      explain: 'Um algoritmo pode ser descrito em linguagem natural, pseudocódigo ou fluxograma — sem necessidade de linguagem de programação. As características essenciais são: precisão, finitude e eficácia.' },
+    { q: 'Para que serve um fluxograma?',
+      opts: ['Para armazenar dados do programa','Para representar visualmente o fluxo de um algoritmo usando símbolos padronizados','Para compilar o código-fonte','Para medir a velocidade de execução'], correct: 1,
+      explain: 'Fluxograma é uma representação visual de algoritmo. Usa símbolos: oval (início/fim), retângulo (processo), losango (decisão), paralelogramo (entrada/saída). Facilita compreender o fluxo antes de programar.' },
+    { q: 'O que é pseudocódigo?',
+      opts: ['Um código falso que não funciona','Uma forma de escrever algoritmos em linguagem informal e estruturada, sem sintaxe de linguagem real','O mesmo que a linguagem Python','Código compilado para processadores específicos'], correct: 1,
+      explain: 'Pseudocódigo usa palavras em português (ou inglês) estruturadas com convenções como SE, ENQUANTO, LEIA, ESCREVA. Não é executável — é uma ferramenta para planejar e comunicar algoritmos antes de programar.' },
+    { q: 'Qual símbolo representa uma DECISÃO num fluxograma?',
+      opts: ['Retângulo','Oval','Losango (diamante)','Paralelogramo'], correct: 2,
+      explain: 'Losango (◇) representa pontos de decisão — onde o fluxo se divide em dois caminhos baseados em uma condição verdadeira/falsa. Retângulo = processo; Oval = início/fim; Paralelogramo = entrada/saída.' }
+  ],
+  mod2: [
+    { q: 'O que é uma variável em um algoritmo?',
+      opts: ['Um valor que nunca pode mudar','Um espaço de memória com nome que armazena um valor e pode ser alterado durante a execução','Uma constante matemática','Uma função sem parâmetros'], correct: 1,
+      explain: 'Variável é como uma caixa identificada por um nome. Guarda um valor do tipo declarado e pode ter seu conteúdo alterado (variado) ao longo da execução do algoritmo.' },
+    { q: 'Qual tipo de dado é adequado para armazenar "aprovado" ou "reprovado"?',
+      opts: ['Inteiro','Real','Texto','Lógico (VERDADEIRO/FALSO)'], correct: 3,
+      explain: 'O tipo Lógico (booleano) armazena apenas dois valores: VERDADEIRO ou FALSO. É ideal para situações binárias como aprovado/reprovado, ligado/desligado, sim/não.' },
+    { q: 'O que faz a instrução LEIA nome?',
+      opts: ['Exibe o valor da variável nome na tela','Recebe um valor digitado pelo usuário e armazena na variável nome','Cria uma nova variável chamada nome','Apaga o conteúdo da variável nome'], correct: 1,
+      explain: 'LEIA é a instrução de entrada: pausa a execução, aguarda o usuário digitar um valor e armazena esse valor na variável especificada. É a forma do algoritmo receber dados externos.' },
+    { q: 'Qual a diferença entre variável e constante?',
+      opts: ['Constante é um tipo especial de variável que armazena apenas números','Variável pode ter seu valor alterado durante a execução; constante é definida uma vez e nunca muda','Não há diferença real entre as duas','Constantes são sempre mais rápidas que variáveis'], correct: 1,
+      explain: 'Variável pode ter seu valor alterado a qualquer momento com uma atribuição (←). Constante é definida uma única vez e protegida contra alterações. Por convenção, constantes são escritas em MAIÚSCULAS: PI, MAX, LIMITE.' },
+    { q: 'Qual o tipo correto para armazenar a nota 8.5?',
+      opts: ['Inteiro','Real','Texto','Lógico'], correct: 1,
+      explain: 'Real (também chamado de ponto flutuante, float ou double) armazena números com parte decimal como 8.5, 3.14, -2.7. O tipo Inteiro só aceita números sem vírgula: 0, 1, -5, 100.' }
+  ],
+  mod3: [
+    { q: 'Qual o resultado da expressão: 10 MOD 3?',
+      opts: ['3','0','1','3.33'], correct: 2,
+      explain: 'MOD retorna o RESTO da divisão inteira. 10 ÷ 3 = 3 com resto 1. Então 10 MOD 3 = 1. MOD é muito útil: se numero MOD 2 = 0, o número é par.' },
+    { q: 'Qual o resultado de: (2 + 3) * 4?',
+      opts: ['14','20','10','24'], correct: 1,
+      explain: 'Parênteses têm a maior precedência. Primeiro: 2 + 3 = 5. Depois: 5 * 4 = 20. Sem os parênteses, 2 + 3 * 4 = 2 + 12 = 14 (a multiplicação viria primeiro).' },
+    { q: 'O operador relacional > retorna VERDADEIRO em qual situação?',
+      opts: ['Quando os dois valores são iguais','Quando o valor da esquerda é maior que o da direita','Quando o valor da direita é maior','Sempre retorna VERDADEIRO'], correct: 1,
+      explain: '> (maior que) compara dois valores e retorna VERDADEIRO apenas quando o operando esquerdo é estritamente maior que o direito. Exemplo: 7 > 5 = VERDADEIRO, 5 > 7 = FALSO, 5 > 5 = FALSO (para igual, use >=).' },
+    { q: 'Quando o operador lógico E retorna VERDADEIRO?',
+      opts: ['Quando pelo menos um lado é VERDADEIRO','Apenas quando os DOIS lados são VERDADEIRO','Quando os dois lados são FALSO','Quando os lados são diferentes'], correct: 1,
+      explain: 'O operador E (AND) é exigente: retorna VERDADEIRO apenas quando ambos os operandos são VERDADEIRO. Basta um ser FALSO para o resultado ser FALSO. Use E quando todas as condições precisam ser satisfeitas simultaneamente.' },
+    { q: 'Quando o operador lógico OU retorna FALSO?',
+      opts: ['Quando pelo menos um lado é VERDADEIRO','Quando os dois lados são VERDADEIRO','Apenas quando os DOIS lados são FALSO','Quando os lados são iguais'], correct: 2,
+      explain: 'O operador OU (OR) é tolerante: retorna FALSO apenas quando ambos os operandos são FALSO. Basta um ser VERDADEIRO para o resultado ser VERDADEIRO. Use OU quando qualquer uma das condições é suficiente.' }
+  ],
+  mod4: [
+    { q: 'Em: SE nota >= 7 ENTÃO ESCREVA "Aprovado" FIM SE — o que acontece se nota = 5?',
+      opts: ['ESCREVA "Aprovado" é executado','Nada é executado — o bloco é ignorado','Ocorre um erro','"Aprovado" é escrito com marca de erro'], correct: 1,
+      explain: 'Com nota = 5, a condição 5 >= 7 é FALSA. O bloco do SE não é executado e o algoritmo continua após o FIM SE. Sem um SENÃO, não há ação alternativa.' },
+    { q: 'Para que serve o bloco SENÃO?',
+      opts: ['Para repetir o SE mais uma vez','Para executar instruções quando a condição do SE é FALSA','Para criar uma condição extra dentro do SE','Para encerrar o algoritmo quando há erro'], correct: 1,
+      explain: 'SENÃO define o caminho alternativo: se a condição do SE for FALSA, as instruções do SENÃO são executadas. Garante que sempre haverá uma ação, seja a condição verdadeira ou falsa.' },
+    { q: 'SE 3 = 5 ENTÃO ESCREVA "A" SENÃO ESCREVA "B" FIM SE — qual a saída?',
+      opts: ['A','B','AB','Nenhuma saída'], correct: 1,
+      explain: 'A condição 3 = 5 é FALSA. O SENÃO é executado, exibindo "B". Se a condição fosse verdadeira (ex: 5 = 5), a saída seria "A".' },
+    { q: 'No SE encadeado (SENÃO SE), quando a segunda condição é testada?',
+      opts: ['Sempre, independente da primeira','Apenas quando a primeira condição é FALSA','Antes da primeira condição','Apenas quando ambas as condições são verdadeiras'], correct: 1,
+      explain: 'No SE encadeado, as condições são avaliadas em sequência. A segunda condição só é testada se a primeira for FALSA, a terceira só se a segunda for FALSA, e assim por diante. Ao encontrar uma verdadeira, executa o bloco e ignora o restante.' },
+    { q: 'SE (nota >= 7) E (presenca >= 75) ENTÃO "Aprovado" — quando a mensagem aparece?',
+      opts: ['Quando nota >= 7, independente da presença','Quando presenca >= 75, independente da nota','Quando nota >= 7 E presença >= 75 ao mesmo tempo','Quando nota >= 7 OU presença >= 75'], correct: 2,
+      explain: 'O operador E exige que AMBAS as condições sejam verdadeiras. Se nota = 8 mas presença = 60, a mensagem não aparece. Se nota = 6 mas presença = 80, também não aparece. Ambas precisam ser satisfeitas.' }
+  ],
+  mod5: [
+    { q: 'Para que servem estruturas de repetição?',
+      opts: ['Para criar cópias de variáveis','Para executar um bloco de instruções múltiplas vezes sem precisar repetir o código manualmente','Para decidir entre dois caminhos','Para declarar múltiplas variáveis de uma vez'], correct: 1,
+      explain: 'Repetição (loop) permite executar um bloco de código várias vezes com apenas uma escrita. Sem loops, exibir 1 a 1000 exigiria 1000 linhas de ESCREVA. Com um PARA, são 3 linhas.' },
+    { q: 'Qual a diferença entre ENQUANTO e PARA?',
+      opts: ['São idênticos — apenas sintaxe diferente','PARA é usado quando sabemos quantas iterações haverá; ENQUANTO quando controlamos pela condição','ENQUANTO só funciona com números inteiros','PARA é mais rápido que ENQUANTO'], correct: 1,
+      explain: 'PARA é ideal para contagem definida: "repita 10 vezes" ou "de 1 a N". ENQUANTO é ideal quando o número de repetições depende de uma condição que pode variar: "enquanto o usuário não digitar 0".' },
+    { q: 'O que é um loop infinito?',
+      opts: ['Um loop que executa exatamente infinito vezes','Uma repetição onde a condição de parada nunca se torna verdadeira — o algoritmo trava indefinidamente','Um loop muito rápido','Um loop que usa todos os tipos de repetição juntos'], correct: 1,
+      explain: 'Loop infinito ocorre quando a condição de parada nunca é satisfeita — geralmente porque a variável de controle não é atualizada dentro do loop, ou a condição está errada. É um erro grave: o programa trava.' },
+    { q: 'O que é um acumulador num algoritmo?',
+      opts: ['Uma variável que conta quantas vezes o loop executou','Uma variável que acumula (soma) valores ao longo das iterações, iniciando em zero','Um tipo especial de função','Um operador matemático'], correct: 1,
+      explain: 'Acumulador é um padrão: uma variável iniciada em 0 que cresce a cada iteração: soma ← soma + valor. Ao final do loop, contém a soma de todos os valores processados. Contador é similar, mas sempre incrementa em 1.' },
+    { q: 'PARA i DE 1 ATÉ 5 FAÇA ... FIM PARA — quantas vezes o bloco é executado?',
+      opts: ['4 vezes','5 vezes','6 vezes','Depende do valor inicial de i'], correct: 1,
+      explain: 'O PARA de 1 até 5 executa com i = 1, 2, 3, 4, 5 — exatamente 5 vezes. A fórmula geral é: (fim - início + 1) iterações. Para DE 3 ATÉ 7: 7 - 3 + 1 = 5 iterações.' }
+  ],
+  mod6: [
+    { q: 'Por que dividir um algoritmo em funções?',
+      opts: ['Para torná-lo mais lento e seguro','Para reutilizar código, facilitar leitura e manutenção, e dividir o problema em partes menores','Funções são obrigatórias em todos os algoritmos','Para evitar o uso de variáveis'], correct: 1,
+      explain: 'Funções permitem: (1) reutilizar — escreva uma vez, use várias; (2) legibilidade — programa principal menor e mais claro; (3) manutenção — corrigir a função corrige todos os usos; (4) teste — testar cada parte isoladamente.' },
+    { q: 'O que são parâmetros de uma função?',
+      opts: ['Variáveis globais acessadas pela função','Valores que a função recebe como entrada para trabalhar','O resultado que a função produz','As instruções dentro da função'], correct: 1,
+      explain: 'Parâmetros são as "entradas" da função — valores que ela precisa receber para realizar sua tarefa. Em calcularMedia(n1, n2), os parâmetros são n1 e n2. São como ingredientes passados ao cozinheiro.' },
+    { q: 'Qual a diferença entre uma FUNÇÃO e um PROCEDIMENTO?',
+      opts: ['São exatamente a mesma coisa','Função executa ações e retorna um valor; procedimento executa ações mas não retorna valor','Procedimento é mais rápido','Função não pode ter parâmetros'], correct: 1,
+      explain: 'Função: realiza processamento E retorna um resultado (usada em expressões: media ← calcularMedia(n1, n2)). Procedimento: realiza ações (como exibir mensagens) mas não retorna valor (chamada isolada: exibirSaudacao("João")).' },
+    { q: 'O que é o escopo de uma variável?',
+      opts: ['O tipo de dado da variável','A região do algoritmo onde a variável existe e pode ser utilizada','O valor inicial da variável','A quantidade de memória que a variável ocupa'], correct: 1,
+      explain: 'Escopo define o "alcance" da variável. Variável local: existe apenas dentro da função onde foi declarada, destruída ao término. Variável global: existe em todo o algoritmo. Prefira locais — evitam efeitos colaterais inesperados.' },
+    { q: 'Uma variável declarada DENTRO de uma função pode ser usada fora dela?',
+      opts: ['Sim, sempre','Sim, se for declarada como pública','Não — variáveis locais só existem dentro da função onde foram criadas','Sim, mas apenas em leitura'], correct: 2,
+      explain: 'Variáveis locais têm escopo restrito à função. Ao término da função, elas deixam de existir. Isso é intencional: protege os dados internos da função e evita que código externo interfira no funcionamento dela.' }
+  ]
+};
+
+const answered = {};
+const TOTAL = 6;
+
+function renderQuiz(modId) {
+  const container = document.getElementById('quiz-' + modId);
+  if (!container) return;
+  const qs = QUIZZES[modId];
+  answered[modId] = new Array(qs.length).fill(false);
+  let html = '';
+  qs.forEach((q, qi) => {
+    html += `<div class="quiz-item" id="${modId}-q${qi}">
+      <div class="question">${qi + 1}. ${q.q}</div>
+      <div class="options">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<button class="opt-btn" onclick="verify('${modId}',${qi},${oi},${q.correct})">${opt}</button>`;
+    });
+    html += `</div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function verify(modId, qi, chosen, correct) {
+  const item = document.getElementById(`${modId}-q${qi}`);
+  const btns = item.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[correct].classList.add('correct');
+  if (chosen !== correct) btns[chosen].classList.add('wrong');
+  const exp = document.createElement('div');
+  exp.className = 'explanation';
+  exp.textContent = QUIZZES[modId][qi].explain;
+  item.appendChild(exp);
+  answered[modId][qi] = true;
+  checkComplete(modId);
+}
+
+function checkComplete(modId) {
+  if (answered[modId].every(Boolean)) {
+    const qs = document.getElementById('quiz-' + modId);
+    const msg = document.createElement('div');
+    msg.className = 'quiz-done-msg';
+    msg.textContent = '✓ Módulo concluído!';
+    qs.appendChild(msg);
+    localStorage.setItem('tc_logica_' + modId, 'done');
+    updateUI();
+  }
+}
+
+function updateUI() {
+  let done = 0;
+  for (let i = 1; i <= TOTAL; i++) {
+    const key = 'mod' + i;
+    const isDone = localStorage.getItem('tc_logica_' + key) === 'done';
+    if (isDone) done++;
+    const badge = document.getElementById('badge-' + key);
+    const link  = document.getElementById('link-' + key);
+    if (badge) { badge.textContent = isDone ? 'Concluído ✓' : 'Em progresso'; badge.className = isDone ? 'badge done-badge' : 'badge'; }
+    if (link)  { link.className = isDone ? 'mod-link done' : 'mod-link'; }
+  }
+  document.getElementById('sb-prog').style.width = (done / TOTAL * 100) + '%';
+  document.getElementById('sb-lbl').textContent = done + ' / ' + TOTAL + ' concluídos';
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+
+const sections = document.querySelectorAll('.module');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.mod-link').forEach(l => l.classList.remove('active'));
+      const link = document.getElementById('link-' + e.target.id);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+for (let i = 1; i <= TOTAL; i++) renderQuiz('mod' + i);
+updateUI();
+</script>
+</body>
+</html>

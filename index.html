@@ -64,7 +64,7 @@
     gap: 32px;
     justify-content: center;
     padding: 40px 24px 80px;
-    max-width: 940px;
+    max-width: 1260px;
     margin: 0 auto;
   }
   .card {
@@ -172,6 +172,20 @@
   </div>
 
   <div class="cards">
+    <a class="card" href="trilha-logica.html" style="--card-accent:#00bcd4;">
+      <style>.card[href="trilha-logica.html"]::before{background:linear-gradient(90deg,#00bcd4,#4dd0e1);}</style>
+      <div class="lang-badge" style="background:rgba(0,188,212,.15);color:#00bcd4;border-color:rgba(0,188,212,.3);">LÓGICA</div>
+      <h2>Trilha Lógica</h2>
+      <p>Pensamento computacional, algoritmos, variáveis, decisões e loops — sem linguagem de programação, só raciocínio.</p>
+      <div class="meta">
+        <span>📦 6 módulos</span>
+        <span>🧩 30 questões</span>
+      </div>
+      <div class="prog-bar"><div class="prog-bar-fill" id="prog-logica" style="background:linear-gradient(90deg,#00bcd4,#4dd0e1);"></div></div>
+      <div class="prog-label" id="prog-logica-lbl">0 / 6 módulos concluídos</div>
+      <span class="cta-btn" style="background:linear-gradient(135deg,#00bcd4,#4dd0e1);color:#000;">Iniciar Trilha →</span>
+    </a>
+
     <a class="card" href="trilha-c.html">
       <div class="lang-badge">LINGUAGEM C</div>
       <h2>Trilha C</h2>
@@ -206,10 +220,13 @@
 <script>
 // Progress from localStorage
 function updateProgress() {
-  const cTotal = 8, cppTotal = 5;
-  let cDone = 0, cppDone = 0;
+  const logicaTotal = 6, cTotal = 8, cppTotal = 5;
+  let logicaDone = 0, cDone = 0, cppDone = 0;
+  for (let i = 1; i <= logicaTotal; i++) if (localStorage.getItem(`tc_logica_mod${i}`) === 'done') logicaDone++;
   for (let i = 1; i <= cTotal; i++) if (localStorage.getItem(`tc_c_mod${i}`) === 'done') cDone++;
   for (let i = 1; i <= cppTotal; i++) if (localStorage.getItem(`tc_cpp_mod${i}`) === 'done') cppDone++;
+  document.getElementById('prog-logica').style.width = (logicaDone / logicaTotal * 100) + '%';
+  document.getElementById('prog-logica-lbl').textContent = `${logicaDone} / ${logicaTotal} módulos concluídos`;
   document.getElementById('prog-c').style.width = (cDone / cTotal * 100) + '%';
   document.getElementById('prog-c-lbl').textContent = `${cDone} / ${cTotal} módulos concluídos`;
   document.getElementById('prog-cpp').style.width = (cppDone / cppTotal * 100) + '%';
