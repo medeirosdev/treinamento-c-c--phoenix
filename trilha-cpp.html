@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha C++ — C/C++ Training</title>
+<style>
+  :root {
+    --bg: #080600; --surface: #110e00; --surface2: #1a1500;
+    --orange: #ff6a00; --gold: #ffaa00;
+    --text: #f0ece0; --muted: #7a6a50; --border: rgba(255,106,0,0.18);
+    --sidebar-w: 260px;
+    --green: #4caf50; --red: #f44336;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border);
+    overflow-y: auto; z-index: 100; padding: 0 0 40px;
+    transition: transform .28s ease;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .sidebar-header a { color: var(--orange); text-decoration: none; font-size: .82rem; }
+  .sidebar-header h3 { font-size: .95rem; margin-top: 8px; color: var(--gold); }
+  .sidebar-header p { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+  .mod-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; font-size: .85rem;
+    border-left: 3px solid transparent; transition: all .15s; color: var(--muted);
+    text-decoration: none;
+  }
+  .mod-link:hover { background: rgba(255,106,0,.06); color: var(--text); }
+  .mod-link.active { border-left-color: var(--orange); color: var(--orange); background: rgba(255,106,0,.08); }
+  .mod-link.done { color: var(--green); }
+  .mod-link.done::after { content: ' ✓'; font-size: .75rem; }
+  .mod-num {
+    min-width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,106,0,.15); color: var(--orange);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700;
+  }
+  .sidebar-prog { padding: 16px 20px 8px; }
+  .sidebar-prog-bar { height: 4px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+  .sidebar-prog-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--gold)); border-radius: 4px; transition: width .5s; }
+  .sidebar-prog-lbl { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+
+  .hamburger {
+    display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    width: 40px; height: 40px; cursor: pointer; align-items: center;
+    justify-content: center; flex-direction: column; gap: 5px;
+  }
+  .hamburger span { display: block; width: 20px; height: 2px; background: var(--orange); border-radius: 2px; }
+
+  .main { margin-left: var(--sidebar-w); min-height: 100vh; padding: 0 0 80px; }
+  .topbar {
+    padding: 18px 40px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(8,6,0,.9); backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .lang-badge {
+    background: rgba(255,170,0,.15); color: var(--gold);
+    border: 1px solid rgba(255,170,0,.3); border-radius: 6px;
+    padding: 2px 10px; font-size: .75rem; font-weight: 700;
+  }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+
+  .module { padding: 40px 40px 60px; border-bottom: 1px solid var(--border); scroll-margin-top: 72px; }
+  .mod-title { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .mod-title .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--orange));
+    color: #000; font-weight: 800; font-size: .88rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mod-title h2 { font-size: 1.5rem; font-weight: 800; }
+  .mod-title .badge { margin-left: auto; padding: 3px 10px; background: rgba(255,106,0,.1); color: var(--muted); border-radius: 99px; font-size: .72rem; }
+  .mod-title .badge.done-badge { background: rgba(76,175,80,.15); color: var(--green); }
+
+  .content-block { max-width: 780px; }
+  .content-block h3 { font-size: 1.1rem; color: var(--gold); margin: 28px 0 10px; }
+  .content-block h4 { font-size: .95rem; color: var(--orange); margin: 20px 0 8px; }
+  .content-block p { font-size: .93rem; line-height: 1.75; color: #d8d0c0; margin-bottom: 12px; }
+  .content-block ul, .content-block ol { padding-left: 22px; margin-bottom: 14px; }
+  .content-block li { font-size: .93rem; line-height: 1.7; color: #d8d0c0; margin-bottom: 4px; }
+  .content-block strong { color: var(--text); }
+  .content-block code { background: rgba(255,106,0,.1); color: var(--gold); padding: 1px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: .87em; }
+
+  pre {
+    background: #0c0a00; border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto;
+    font-family: 'Consolas', 'Courier New', monospace; font-size: .85rem;
+    line-height: 1.65; margin: 16px 0; color: #c8c0a8;
+  }
+  pre .c  { color: #5a7a5a; font-style: italic; }
+  pre .kw { color: #cc88ff; }
+  pre .ty { color: #4fc3f7; }
+  pre .fn { color: var(--gold); }
+  pre .str { color: #a5d6a7; }
+  pre .num { color: #ffab40; }
+  pre .pp { color: #ef9a9a; }
+
+  .info-box { background: rgba(255,106,0,.07); border-left: 4px solid var(--orange); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0; }
+  .warn-box { background: rgba(244,67,54,.08); border-left: 4px solid var(--red); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0; }
+  .cpp-box  { background: rgba(255,170,0,.07); border-left: 4px solid var(--gold); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0; }
+
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .86rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 14px; text-align: left; }
+  th { background: rgba(255,170,0,.1); color: var(--gold); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  .quiz-section { margin-top: 36px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 26px 28px; max-width: 780px; }
+  .quiz-section h3 { font-size: 1rem; color: var(--gold); margin-bottom: 18px; }
+  .quiz-item { margin-bottom: 22px; }
+  .quiz-item .question { font-size: .92rem; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+  .options { display: flex; flex-direction: column; gap: 7px; }
+  .opt-btn { background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; text-align: left; cursor: pointer; font-size: .87rem; color: var(--text); transition: all .15s; }
+  .opt-btn:hover:not([disabled]) { background: rgba(255,106,0,.1); border-color: var(--orange); }
+  .opt-btn.correct { background: rgba(76,175,80,.15); border-color: var(--green); color: var(--green); }
+  .opt-btn.wrong   { background: rgba(244,67,54,.12); border-color: var(--red); color: var(--red); }
+  .explanation { font-size: .82rem; color: var(--muted); margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,.03); border-radius: 6px; line-height: 1.55; }
+  .quiz-done-msg { text-align: center; padding: 14px; color: var(--green); font-weight: 700; font-size: .95rem; margin-top: 10px; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .hamburger { display: flex; }
+    .module { padding: 60px 20px 40px; }
+    .topbar { padding: 14px 20px; }
+    .quiz-section { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">← Voltar ao início</a>
+    <h3>Trilha C++</h3>
+    <p>Linguagem C++ · 5 módulos</p>
+  </div>
+  <div class="sidebar-prog">
+    <div class="sidebar-prog-bar"><div class="sidebar-prog-fill" id="sb-prog" style="width:0%"></div></div>
+    <div class="sidebar-prog-lbl" id="sb-lbl">0 / 5 concluídos</div>
+  </div>
+  <a class="mod-link" href="#mod1" id="link-mod1" onclick="closeSidebar()"><span class="mod-num">1</span> Classes e Objetos</a>
+  <a class="mod-link" href="#mod2" id="link-mod2" onclick="closeSidebar()"><span class="mod-num">2</span> Herança e Polimorfismo</a>
+  <a class="mod-link" href="#mod3" id="link-mod3" onclick="closeSidebar()"><span class="mod-num">3</span> Templates e STL</a>
+  <a class="mod-link" href="#mod4" id="link-mod4" onclick="closeSidebar()"><span class="mod-num">4</span> Referências e Memória</a>
+  <a class="mod-link" href="#mod5" id="link-mod5" onclick="closeSidebar()"><span class="mod-num">5</span> C++ Moderno</a>
+</nav>
+
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="main">
+  <div class="topbar">
+    <span class="lang-badge">C++</span>
+    <h1>Trilha C++ — Programação Orientada a Objetos e além</h1>
+  </div>
+
+  <!-- ══════════════ MODULE 1 ══════════════ -->
+  <section class="module" id="mod1">
+    <div class="mod-title">
+      <div class="num">1</div>
+      <h2>Classes e Objetos</h2>
+      <span class="badge" id="badge-mod1">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>C++ vs C: o que muda?</h3>
+      <p>C++ é um superconjunto de C com adições fundamentais: classes, herança, templates, sobrecarga de operadores, exceções, e muito mais. Todo código C válido compila como C++ (com raras exceções).</p>
+      <div class="cpp-box">C++ foi criado por Bjarne Stroustrup na Bell Labs nos anos 1980 como "C com Classes". Hoje é a linguagem padrão de sistemas embarcados, games, trading de alta frequência e sistemas operacionais de alto desempenho.</div>
+
+      <h3>Encapsulamento: a ideia central</h3>
+      <p>Uma classe agrupa <strong>dados</strong> (atributos) e <strong>comportamentos</strong> (métodos) em uma unidade, controlando quem pode acessar o quê.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">Motor</span> {
+<span class="kw">private</span>:                    <span class="c">// só a classe acessa</span>
+    <span class="ty">int</span> velocidade;
+    <span class="ty">bool</span> ligado;
+
+<span class="kw">public</span>:                     <span class="c">// qualquer código pode usar</span>
+    <span class="fn">Motor</span>() : velocidade(<span class="num">0</span>), ligado(<span class="kw">false</span>) {}  <span class="c">// construtor</span>
+
+    <span class="ty">void</span> <span class="fn">ligar</span>(<span class="ty">int</span> vel) {
+        ligado = <span class="kw">true</span>;
+        velocidade = vel;
+    }
+
+    <span class="ty">void</span> <span class="fn">parar</span>() {
+        ligado = <span class="kw">false</span>;
+        velocidade = <span class="num">0</span>;
+    }
+
+    <span class="ty">int</span>  <span class="fn">getVelocidade</span>() <span class="kw">const</span> { <span class="kw">return</span> velocidade; }
+    <span class="ty">bool</span> <span class="fn">estaLigado</span>()    <span class="kw">const</span> { <span class="kw">return</span> ligado; }
+};
+</pre>
+
+      <h4>Usando a classe</h4>
+<pre>
+Motor esquerdo;            <span class="c">// chama construtor</span>
+esquerdo.<span class="fn">ligar</span>(<span class="num">200</span>);
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, esquerdo.<span class="fn">getVelocidade</span>());  <span class="c">// 200</span>
+<span class="c">// esquerdo.velocidade = 300;  ERRO: private!</span>
+</pre>
+
+      <h3>Construtores e lista de inicialização</h3>
+<pre>
+<span class="kw">class</span> <span class="ty">PID</span> {
+<span class="kw">private</span>:
+    <span class="ty">float</span> kP, kD;
+    <span class="ty">float</span> erroAnterior;
+
+<span class="kw">public</span>:
+    <span class="c">// Lista de inicialização: inicializa ANTES do corpo do construtor</span>
+    <span class="fn">PID</span>(<span class="ty">float</span> p, <span class="ty">float</span> d) : kP(p), kD(d), erroAnterior(<span class="num">0.0f</span>) {}
+
+    <span class="ty">float</span> <span class="fn">calcular</span>(<span class="ty">float</span> erro) {
+        <span class="ty">float</span> derivativo = erro - erroAnterior;
+        erroAnterior = erro;
+        <span class="kw">return</span> kP * erro + kD * derivativo;
+    }
+};
+
+PID <span class="fn">controlador</span>(<span class="num">2.5f</span>, <span class="num">0.8f</span>);
+<span class="ty">float</span> correcao = controlador.<span class="fn">calcular</span>(<span class="num">-500.0f</span>);
+</pre>
+
+      <h3>Destrutor</h3>
+<pre>
+<span class="kw">class</span> <span class="ty">Buffer</span> {
+<span class="kw">private</span>:
+    <span class="ty">int</span>* dados;
+    <span class="ty">int</span>  tamanho;
+
+<span class="kw">public</span>:
+    <span class="fn">Buffer</span>(<span class="ty">int</span> n) : tamanho(n) {
+        dados = <span class="kw">new</span> <span class="ty">int</span>[n];  <span class="c">// aloca no construtor</span>
+    }
+
+    ~<span class="fn">Buffer</span>() {            <span class="c">// destrutor: ~ antes do nome</span>
+        <span class="kw">delete</span>[] dados;    <span class="c">// libera automaticamente ao sair do escopo!</span>
+    }
+};
+
+{
+    Buffer b(<span class="num">100</span>);
+    <span class="c">// usa b...</span>
+}  <span class="c">// ← ~Buffer() chamado aqui: sem memory leak!</span>
+</pre>
+
+      <h3>Modificadores de acesso</h3>
+      <table>
+        <tr><th>Modificador</th><th>Quem acessa</th></tr>
+        <tr><td><code>public</code></td><td>Qualquer código</td></tr>
+        <tr><td><code>private</code></td><td>Só a própria classe</td></tr>
+        <tr><td><code>protected</code></td><td>A classe e suas subclasses</td></tr>
+      </table>
+
+      <h3>Métodos const</h3>
+<pre>
+<span class="ty">int</span> <span class="fn">getVelocidade</span>() <span class="kw">const</span> {  <span class="c">// "const" garante que não modifica o objeto</span>
+    <span class="kw">return</span> velocidade;
+    <span class="c">// velocidade = 999;  ERRO: const method não pode modificar</span>
+}
+</pre>
+      <div class="info-box">Sempre marque métodos de leitura como <code>const</code>. Isso permite chamá-los em objetos const e serve como documentação de que o método não tem efeitos colaterais.</div>
+
+      <h3>Ponteiro this</h3>
+<pre>
+<span class="kw">class</span> <span class="ty">Sensor</span> {
+    <span class="ty">int</span> valor;
+<span class="kw">public</span>:
+    <span class="ty">void</span> <span class="fn">setValor</span>(<span class="ty">int</span> valor) {  <span class="c">// parâmetro com mesmo nome</span>
+        <span class="kw">this</span>-&gt;valor = valor;      <span class="c">// this->campo = parâmetro</span>
+    }
+};
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 1</h3>
+      <div id="quiz-mod1"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 2 ══════════════ -->
+  <section class="module" id="mod2">
+    <div class="mod-title">
+      <div class="num">2</div>
+      <h2>Herança e Polimorfismo</h2>
+      <span class="badge" id="badge-mod2">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Herança: reutilizando comportamento</h3>
+      <p>Uma classe <em>derivada</em> herda atributos e métodos da classe <em>base</em>, podendo adicionar ou modificar comportamentos.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">Robo</span> {           <span class="c">// classe base</span>
+<span class="kw">protected</span>:
+    <span class="ty">int</span> velocidade;
+    <span class="ty">int</span> posicao;
+
+<span class="kw">public</span>:
+    <span class="fn">Robo</span>() : velocidade(<span class="num">0</span>), posicao(<span class="num">4000</span>) {}
+
+    <span class="kw">virtual</span> <span class="ty">void</span> <span class="fn">atualizar</span>() {  <span class="c">// virtual = pode ser sobrescrito</span>
+        posicao += velocidade;
+    }
+
+    <span class="ty">int</span> <span class="fn">getPosicao</span>() <span class="kw">const</span> { <span class="kw">return</span> posicao; }
+};
+
+<span class="kw">class</span> <span class="ty">SeguidorLinha</span> : <span class="kw">public</span> Robo {  <span class="c">// herda de Robo</span>
+<span class="kw">private</span>:
+    <span class="ty">float</span> kP;
+
+<span class="kw">public</span>:
+    <span class="fn">SeguidorLinha</span>(<span class="ty">float</span> p) : kP(p) {}   <span class="c">// chama Robo() implicitamente</span>
+
+    <span class="ty">void</span> <span class="fn">atualizar</span>() <span class="kw">override</span> {          <span class="c">// sobrescreve o método base</span>
+        <span class="ty">float</span> erro = posicao - <span class="num">4000</span>;     <span class="c">// protected: acessa da subclasse</span>
+        velocidade = -(<span class="ty">int</span>)(kP * erro);
+        Robo::<span class="fn">atualizar</span>();                <span class="c">// chama a versão da base</span>
+    }
+};
+</pre>
+
+      <h3>Polimorfismo com ponteiro de base</h3>
+<pre>
+Robo* robo = <span class="kw">new</span> SeguidorLinha(<span class="num">2.5f</span>);
+robo-&gt;<span class="fn">atualizar</span>();  <span class="c">// chama SeguidorLinha::atualizar() — não Robo::atualizar!</span>
+                    <span class="c">// Isso é polimorfismo dinâmico (virtual dispatch)</span>
+<span class="kw">delete</span> robo;
+</pre>
+      <div class="cpp-box"><strong>Por que virtual?</strong> Sem <code>virtual</code>, <code>robo->atualizar()</code> chamaria sempre <code>Robo::atualizar()</code>, ignorando o tipo real do objeto. Com <code>virtual</code>, o C++ usa uma tabela de funções virtuais (vtable) para chamar a implementação correta em tempo de execução.</div>
+
+      <h3>Classe abstrata e métodos puros</h3>
+<pre>
+<span class="kw">class</span> <span class="ty">Controlador</span> {         <span class="c">// classe abstrata: não pode ser instanciada</span>
+<span class="kw">public</span>:
+    <span class="kw">virtual</span> <span class="ty">float</span> <span class="fn">calcular</span>(<span class="ty">float</span> erro) = <span class="num">0</span>;  <span class="c">// método puro (= 0)</span>
+    <span class="kw">virtual</span> ~<span class="fn">Controlador</span>() {}               <span class="c">// destrutor virtual: sempre!</span>
+};
+
+<span class="kw">class</span> <span class="ty">ControladorP</span> : <span class="kw">public</span> Controlador {
+    <span class="ty">float</span> kP;
+<span class="kw">public</span>:
+    <span class="fn">ControladorP</span>(<span class="ty">float</span> p) : kP(p) {}
+    <span class="ty">float</span> <span class="fn">calcular</span>(<span class="ty">float</span> erro) <span class="kw">override</span> { <span class="kw">return</span> kP * erro; }
+};
+
+<span class="kw">class</span> <span class="ty">ControladorPD</span> : <span class="kw">public</span> Controlador {
+    <span class="ty">float</span> kP, kD, ant;
+<span class="kw">public</span>:
+    <span class="fn">ControladorPD</span>(<span class="ty">float</span> p, <span class="ty">float</span> d) : kP(p), kD(d), ant(<span class="num">0</span>) {}
+    <span class="ty">float</span> <span class="fn">calcular</span>(<span class="ty">float</span> erro) <span class="kw">override</span> {
+        <span class="ty">float</span> r = kP * erro + kD * (erro - ant);
+        ant = erro; <span class="kw">return</span> r;
+    }
+};
+</pre>
+      <div class="warn-box">Sempre declare o destrutor como <code>virtual</code> em classes base. Sem isso, deletar um objeto derivado através de um ponteiro base não chama o destrutor correto → memory leak.</div>
+
+      <h3>override e final</h3>
+<pre>
+<span class="ty">void</span> <span class="fn">atualizar</span>() <span class="kw">override</span> {}  <span class="c">// erro se não existe virtual na base</span>
+<span class="ty">void</span> <span class="fn">atualizar</span>() <span class="kw">final</span>    {}  <span class="c">// nenhuma subclasse pode sobrescrever</span>
+<span class="kw">class</span> <span class="ty">Fechado</span> <span class="kw">final</span> : <span class="kw">public</span> Base {}  <span class="c">// ninguém pode herdar de Fechado</span>
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 2</h3>
+      <div id="quiz-mod2"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 3 ══════════════ -->
+  <section class="module" id="mod3">
+    <div class="mod-title">
+      <div class="num">3</div>
+      <h2>Templates e STL</h2>
+      <span class="badge" id="badge-mod3">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Function templates — código genérico</h3>
+      <p>Em vez de escrever a mesma função para cada tipo, um template gera o código automaticamente:</p>
+<pre>
+<span class="c">// Sem template: precisaria de maximo_int, maximo_float, maximo_double...</span>
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+T <span class="fn">maximo</span>(T a, T b) {
+    <span class="kw">return</span> (a &gt; b) ? a : b;
+}
+
+<span class="fn">maximo</span>(<span class="num">3</span>, <span class="num">7</span>);          <span class="c">// T = int   → retorna 7</span>
+<span class="fn">maximo</span>(<span class="num">3.14f</span>, <span class="num">2.7f</span>);  <span class="c">// T = float → retorna 3.14</span>
+<span class="fn">maximo</span>(<span class="str">'a'</span>, <span class="str">'z'</span>);     <span class="c">// T = char  → retorna 'z'</span>
+</pre>
+
+      <h3>Class templates</h3>
+<pre>
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T, <span class="ty">int</span> N&gt;
+<span class="kw">class</span> <span class="ty">RingBuffer</span> {
+<span class="kw">private</span>:
+    T    dados[N];
+    <span class="ty">int</span>  cabeca = <span class="num">0</span>;
+    <span class="ty">int</span>  tamanho = <span class="num">0</span>;
+
+<span class="kw">public</span>:
+    <span class="ty">void</span> <span class="fn">push</span>(T valor) {
+        dados[cabeca % N] = valor;
+        cabeca++;
+        <span class="kw">if</span> (tamanho &lt; N) tamanho++;
+    }
+
+    T <span class="fn">media</span>() {
+        T soma = T();   <span class="c">// zero-initializes o tipo T</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; tamanho; i++) soma += dados[i];
+        <span class="kw">return</span> soma / tamanho;
+    }
+};
+
+RingBuffer&lt;<span class="ty">float</span>, <span class="num">10</span>&gt; leituras;  <span class="c">// buffer de 10 floats</span>
+leituras.<span class="fn">push</span>(<span class="num">3800.0f</span>);
+leituras.<span class="fn">push</span>(<span class="num">4100.0f</span>);
+<span class="ty">float</span> m = leituras.<span class="fn">media</span>();  <span class="c">// 3950.0</span>
+</pre>
+
+      <h3>std::vector — array dinâmico</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;vector&gt;</span>
+
+std::vector&lt;<span class="ty">int</span>&gt; nums;
+nums.<span class="fn">push_back</span>(<span class="num">10</span>);
+nums.<span class="fn">push_back</span>(<span class="num">20</span>);
+nums.<span class="fn">push_back</span>(<span class="num">30</span>);
+
+<span class="fn">printf</span>(<span class="str">"%zu\n"</span>, nums.<span class="fn">size</span>());    <span class="c">// 3</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, nums[<span class="num">1</span>]);         <span class="c">// 20</span>
+nums.<span class="fn">pop_back</span>();                 <span class="c">// remove último</span>
+
+<span class="c">// Range-for (C++11)</span>
+<span class="kw">for</span> (<span class="ty">int</span> n : nums) <span class="fn">printf</span>(<span class="str">"%d "</span>, n);
+
+<span class="c">// Inicialização direta</span>
+std::vector&lt;<span class="ty">float</span>&gt; <span class="fn">sensor</span>({<span class="num">0.0f</span>, <span class="num">100.0f</span>, <span class="num">4095.0f</span>});
+</pre>
+
+      <h3>std::string</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;string&gt;</span>
+
+std::string nome = <span class="str">"Senna"</span>;
+nome += <span class="str">" v4"</span>;                  <span class="c">// concatenação com +=</span>
+<span class="ty">int</span> tam = nome.<span class="fn">length</span>();        <span class="c">// 8</span>
+
+<span class="kw">if</span> (nome == <span class="str">"Senna v4"</span>) {}     <span class="c">// comparação com ==</span>
+<span class="kw">if</span> (nome.<span class="fn">find</span>(<span class="str">"v4"</span>) != std::string::npos) {}  <span class="c">// busca</span>
+
+std::string sub = nome.<span class="fn">substr</span>(<span class="num">0</span>, <span class="num">5</span>);  <span class="c">// "Senna"</span>
+</pre>
+
+      <h3>std::map — dicionário chave/valor</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;map&gt;</span>
+
+std::map&lt;std::string, <span class="ty">float</span>&gt; params;
+params[<span class="str">"kP"</span>] = <span class="num">2.5f</span>;
+params[<span class="str">"kD"</span>] = <span class="num">0.8f</span>;
+
+<span class="kw">for</span> (<span class="kw">auto</span>&amp; [chave, valor] : params) {    <span class="c">// C++17 structured binding</span>
+    <span class="fn">printf</span>(<span class="str">"%s = %.2f\n"</span>, chave.<span class="fn">c_str</span>(), valor);
+}
+</pre>
+
+      <h3>Iteradores</h3>
+<pre>
+std::vector&lt;<span class="ty">int</span>&gt; v = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>};
+
+<span class="c">// Iterador explícito</span>
+<span class="kw">for</span> (<span class="kw">auto</span> it = v.<span class="fn">begin</span>(); it != v.<span class="fn">end</span>(); ++it) {
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, *it);
+}
+
+<span class="c">// Reverso</span>
+<span class="kw">for</span> (<span class="kw">auto</span> it = v.<span class="fn">rbegin</span>(); it != v.<span class="fn">rend</span>(); ++it) {
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, *it);  <span class="c">// 5 4 3 2 1</span>
+}
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 3</h3>
+      <div id="quiz-mod3"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 4 ══════════════ -->
+  <section class="module" id="mod4">
+    <div class="mod-title">
+      <div class="num">4</div>
+      <h2>Referências, Memória e RAII</h2>
+      <span class="badge" id="badge-mod4">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Referências vs Ponteiros</h3>
+      <p>Referências são apelidos para variáveis existentes. Diferente de ponteiros, não podem ser nulas e não podem ser reassociadas.</p>
+<pre>
+<span class="ty">int</span> x = <span class="num">10</span>;
+<span class="ty">int</span>&amp; ref = x;   <span class="c">// ref é um apelido para x</span>
+
+ref = <span class="num">99</span>;         <span class="c">// modifica x</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, x);  <span class="c">// 99</span>
+
+<span class="c">// Referência vs Ponteiro: quais as diferenças?</span>
+<span class="ty">int</span>* p = &amp;x;  <span class="c">// ponteiro: pode ser NULL, pode mudar pra onde aponta</span>
+<span class="ty">int</span>&amp; r = x;   <span class="c">// referência: sempre válida, sempre o mesmo objeto</span>
+</pre>
+      <table>
+        <tr><th></th><th>Ponteiro</th><th>Referência</th></tr>
+        <tr><td>Pode ser NULL</td><td>Sim</td><td>Não</td></tr>
+        <tr><td>Reassociável</td><td>Sim (p = &amp;outro)</td><td>Não (sempre o original)</td></tr>
+        <tr><td>Sintaxe de uso</td><td>*p ou p-></td><td>Igual à variável original</td></tr>
+        <tr><td>Quando usar</td><td>Opcional/nulável, arrays</td><td>Parâmetros, aliases locais</td></tr>
+      </table>
+
+      <h3>Passagem por referência const</h3>
+<pre>
+<span class="c">// Ruim: copia o vector inteiro</span>
+<span class="ty">float</span> <span class="fn">somaVetor</span>(std::vector&lt;<span class="ty">float</span>&gt; v);
+
+<span class="c">// Bom: passa referência, não copia; const garante que não modifica</span>
+<span class="ty">float</span> <span class="fn">somaVetor</span>(<span class="kw">const</span> std::vector&lt;<span class="ty">float</span>&gt;&amp; v) {
+    <span class="ty">float</span> soma = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="ty">float</span> x : v) soma += x;
+    <span class="kw">return</span> soma;
+}
+</pre>
+      <div class="info-box"><strong>Regra prática:</strong> Se o parâmetro tem mais de 4 bytes e você não precisa modificá-lo, passe como <code>const T&</code>. Para tipos primitivos (int, float), passe por valor — a referência não compensa.</div>
+
+      <h3>new e delete em C++</h3>
+<pre>
+<span class="c">// Aloca um objeto na heap e chama o construtor</span>
+Motor* m = <span class="kw">new</span> Motor();
+m-&gt;<span class="fn">ligar</span>(<span class="num">200</span>);
+<span class="kw">delete</span> m;  <span class="c">// chama destrutor e libera memória</span>
+
+<span class="c">// Array na heap</span>
+<span class="ty">int</span>* arr = <span class="kw">new</span> <span class="ty">int</span>[<span class="num">100</span>];
+arr[<span class="num">0</span>] = <span class="num">42</span>;
+<span class="kw">delete</span>[] arr;  <span class="c">// delete[] para arrays — não delete!</span>
+</pre>
+      <div class="warn-box"><code>delete[]</code> para arrays, <code>delete</code> para objetos únicos. Confundir os dois é comportamento indefinido.</div>
+
+      <h3>RAII — Resource Acquisition Is Initialization</h3>
+      <p>O princípio mais importante de C++ moderno: ligar a vida de um recurso à vida de um objeto. O construtor adquire, o destrutor libera.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">GerenciadorArquivo</span> {
+<span class="kw">private</span>:
+    FILE* fp;
+
+<span class="kw">public</span>:
+    <span class="fn">GerenciadorArquivo</span>(<span class="kw">const</span> <span class="ty">char</span>* path) {
+        fp = <span class="fn">fopen</span>(path, <span class="str">"r"</span>);
+    }
+    ~<span class="fn">GerenciadorArquivo</span>() {
+        <span class="kw">if</span> (fp) <span class="fn">fclose</span>(fp);  <span class="c">// fechado automaticamente!</span>
+    }
+    FILE* <span class="fn">get</span>() { <span class="kw">return</span> fp; }
+};
+
+<span class="ty">void</span> <span class="fn">lerArquivo</span>() {
+    GerenciadorArquivo arq(<span class="str">"dados.txt"</span>);
+    <span class="c">// usa arq.get() para ler...</span>
+    <span class="kw">if</span> (erro) <span class="kw">return</span>;  <span class="c">// fclose chamado mesmo aqui!</span>
+}  <span class="c">// fclose chamado aqui também</span>
+</pre>
+
+      <h3>Smart pointers (C++11)</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;memory&gt;</span>
+
+<span class="c">// unique_ptr: propriedade única, deleta ao sair do escopo</span>
+std::unique_ptr&lt;Motor&gt; m = std::<span class="fn">make_unique</span>&lt;Motor&gt;();
+m-&gt;<span class="fn">ligar</span>(<span class="num">200</span>);
+<span class="c">// delete m; ← não precisa! unique_ptr faz isso automaticamente</span>
+
+<span class="c">// shared_ptr: contagem de referências, deleta quando ninguém usa</span>
+std::shared_ptr&lt;Motor&gt; a = std::<span class="fn">make_shared</span>&lt;Motor&gt;();
+std::shared_ptr&lt;Motor&gt; b = a;  <span class="c">// compartilhado</span>
+<span class="c">// deletado quando ambos a e b saem do escopo</span>
+</pre>
+      <div class="cpp-box">Em C++ moderno, prefira smart pointers a <code>new</code>/<code>delete</code> raw. Eles implementam RAII automaticamente e eliminam a classe inteira de bugs de memory leak e double-free.</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 4</h3>
+      <div id="quiz-mod4"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 5 ══════════════ -->
+  <section class="module" id="mod5">
+    <div class="mod-title">
+      <div class="num">5</div>
+      <h2>C++ Moderno (C++11/14/17)</h2>
+      <span class="badge" id="badge-mod5">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>auto — dedução de tipo</h3>
+<pre>
+<span class="kw">auto</span> x = <span class="num">42</span>;          <span class="c">// int</span>
+<span class="kw">auto</span> pi = <span class="num">3.14</span>;       <span class="c">// double</span>
+<span class="kw">auto</span> nome = std::string(<span class="str">"Senna"</span>);
+
+<span class="c">// Especialmente útil com tipos longos</span>
+std::vector&lt;std::pair&lt;<span class="ty">int</span>, std::string&gt;&gt; lista;
+<span class="kw">auto</span> it = lista.<span class="fn">begin</span>();  <span class="c">// muito melhor que escrever o tipo completo</span>
+
+<span class="c">// auto& para referência, const auto& para const ref</span>
+<span class="kw">for</span> (<span class="kw">const</span> <span class="kw">auto</span>&amp; item : lista) { <span class="c">/* ... */</span> }
+</pre>
+
+      <h3>Range-based for loop</h3>
+<pre>
+std::vector&lt;<span class="ty">int</span>&gt; v = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>};
+
+<span class="kw">for</span> (<span class="ty">int</span> x : v) <span class="fn">printf</span>(<span class="str">"%d\n"</span>, x);       <span class="c">// cópia</span>
+<span class="kw">for</span> (<span class="ty">int</span>&amp; x : v) x *= <span class="num">2</span>;              <span class="c">// referência: modifica v</span>
+<span class="kw">for</span> (<span class="kw">const</span> <span class="ty">int</span>&amp; x : v) <span class="fn">printf</span>(<span class="str">"%d "</span>, x); <span class="c">// const ref: eficiente + readonly</span>
+</pre>
+
+      <h3>nullptr — ponteiro nulo tipado</h3>
+<pre>
+<span class="c">// C antigo: NULL é simplesmente 0, pode causar ambiguidade</span>
+<span class="ty">void</span> <span class="fn">f</span>(<span class="ty">int</span> n);
+<span class="ty">void</span> <span class="fn">f</span>(<span class="ty">char</span>* s);
+<span class="fn">f</span>(<span class="kw">NULL</span>);    <span class="c">// ambíguo: f(0) ou f(nullptr)?</span>
+<span class="fn">f</span>(<span class="kw">nullptr</span>); <span class="c">// claro: chama f(char*)</span>
+
+<span class="ty">int</span>* p = <span class="kw">nullptr</span>;  <span class="c">// prefira sempre nullptr a NULL</span>
+</pre>
+
+      <h3>constexpr — computação em tempo de compilação</h3>
+<pre>
+<span class="kw">constexpr</span> <span class="ty">int</span> NUM_SENSORES = <span class="num">9</span>;
+<span class="kw">constexpr</span> <span class="ty">float</span> PI = <span class="num">3.14159265f</span>;
+<span class="kw">constexpr</span> <span class="ty">int</span> <span class="fn">quadrado</span>(<span class="ty">int</span> x) { <span class="kw">return</span> x * x; }
+
+<span class="ty">int</span> arr[<span class="fn">quadrado</span>(<span class="num">4</span>)];   <span class="c">// 16 — tamanho calculado em compile-time</span>
+
+<span class="c">// constexpr é melhor que #define: tem tipo, escopo, pode ser função</span>
+</pre>
+
+      <h3>Lambda functions</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;algorithm&gt;</span>
+
+std::vector&lt;<span class="ty">int</span>&gt; v = {<span class="num">5</span>, <span class="num">1</span>, <span class="num">3</span>, <span class="num">2</span>, <span class="num">4</span>};
+
+<span class="c">// Lambda: [captura](params) { corpo }</span>
+std::<span class="fn">sort</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(),
+    [](<span class="ty">int</span> a, <span class="ty">int</span> b) { <span class="kw">return</span> a &lt; b; });  <span class="c">// ordena crescente</span>
+
+<span class="c">// Lambda com captura de variável</span>
+<span class="ty">int</span> limite = <span class="num">3</span>;
+<span class="kw">auto</span> ehMenorQueLimite = [limite](<span class="ty">int</span> x) { <span class="kw">return</span> x &lt; limite; };
+<span class="c">// [=] captura tudo por valor, [&] por referência</span>
+
+<span class="c">// Lambda como variável</span>
+<span class="kw">auto</span> somar = [](<span class="ty">float</span> a, <span class="ty">float</span> b) { <span class="kw">return</span> a + b; };
+<span class="ty">float</span> r = <span class="fn">somar</span>(<span class="num">1.5f</span>, <span class="num">2.5f</span>);  <span class="c">// 4.0</span>
+</pre>
+
+      <h3>Inicialização uniforme com {}</h3>
+<pre>
+<span class="ty">int</span>    a{<span class="num">42</span>};            <span class="c">// equivale a int a = 42</span>
+<span class="ty">float</span>  f{<span class="num">3.14f</span>};
+Motor  m{};              <span class="c">// construtor padrão</span>
+
+std::vector&lt;<span class="ty">int</span>&gt; v{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};  <span class="c">// inicializa com os três valores</span>
+
+<span class="c">// Vantagem: detecta narrowing conversions em compile time</span>
+<span class="ty">int</span> x{<span class="num">3.14</span>};  <span class="c">// ERRO de compilação: 3.14 não cabe em int sem truncar</span>
+<span class="ty">int</span> y = <span class="num">3.14</span>; <span class="c">// Apenas warning — muito mais silencioso</span>
+</pre>
+
+      <h3>enum class — enumerações com escopo</h3>
+<pre>
+<span class="c">// C antigo: enum sem escopo, nomes podem colidir</span>
+<span class="kw">enum</span> Status { OK, ERRO };        <span class="c">// OK e ERRO no escopo global</span>
+
+<span class="c">// C++11: enum class tem escopo próprio</span>
+<span class="kw">enum class</span> ModoRobo { Parado, Seguindo, Retorno };
+<span class="kw">enum class</span> StatusSensor { OK, Falha, Saturado };  <span class="c">// OK não conflita!</span>
+
+ModoRobo modo = ModoRobo::Seguindo;
+<span class="kw">if</span> (modo == ModoRobo::Seguindo) { <span class="c">/* ... */</span> }
+<span class="c">// if (modo == 1)  ERRO: enum class não converte implicitamente para int</span>
+</pre>
+
+      <h3>Structured bindings (C++17)</h3>
+<pre>
+std::pair&lt;<span class="ty">int</span>, std::string&gt; resultado = {<span class="num">42</span>, <span class="str">"ok"</span>};
+<span class="kw">auto</span> [codigo, mensagem] = resultado;  <span class="c">// desestrutura o par</span>
+
+std::map&lt;std::string, <span class="ty">int</span>&gt; mapa = {{<span class="str">"a"</span>, <span class="num">1</span>}, {<span class="str">"b"</span>, <span class="num">2</span>}};
+<span class="kw">for</span> (<span class="kw">const</span> <span class="kw">auto</span>&amp; [chave, valor] : mapa) {
+    <span class="fn">printf</span>(<span class="str">"%s=%d\n"</span>, chave.<span class="fn">c_str</span>(), valor);
+}
+</pre>
+
+      <h3>Exemplo: PID moderno em C++</h3>
+<pre>
+<span class="kw">class</span> <span class="ty">PIDController</span> {
+<span class="kw">private</span>:
+    <span class="kw">const</span> <span class="ty">float</span> kP, kD;
+    <span class="ty">float</span> erroAnterior{<span class="num">0.0f</span>};
+
+<span class="kw">public</span>:
+    <span class="kw">constexpr</span> <span class="fn">PIDController</span>(<span class="ty">float</span> p, <span class="ty">float</span> d) : kP{p}, kD{d} {}
+
+    [[<span class="fn">nodiscard</span>]] <span class="ty">float</span> <span class="fn">calcular</span>(<span class="ty">float</span> erro) {
+        <span class="kw">auto</span> derivativo = erro - erroAnterior;
+        erroAnterior    = erro;
+        <span class="kw">return</span> kP * erro + kD * derivativo;
+    }
+
+    <span class="ty">void</span> <span class="fn">resetar</span>() <span class="kw">noexcept</span> { erroAnterior = <span class="num">0.0f</span>; }
+};
+
+<span class="kw">auto</span> pid = PIDController{<span class="num">2.5f</span>, <span class="num">0.8f</span>};
+<span class="kw">auto</span> correcao = pid.<span class="fn">calcular</span>(-<span class="num">500.0f</span>);
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 5</h3>
+      <div id="quiz-mod5"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const QUIZZES = {
+  mod1: [
+    { q: 'O que é encapsulamento em OOP?',
+      opts: ['Herdar métodos de outra classe','Agrupar dados e comportamentos numa unidade controlando o acesso','Criar funções genéricas','Alocar memória dinamicamente'], correct: 1,
+      explain: 'Encapsulamento agrupa atributos (dados) e métodos (comportamentos) numa classe e controla quais partes do código podem acessar cada membro via public/private/protected.' },
+    { q: 'Qual modificador de acesso permite que subclasses acessem um membro, mas código externo não?',
+      opts: ['public','private','protected','internal'], correct: 2,
+      explain: 'protected: visível na própria classe e em classes derivadas (subclasses), mas não em código externo. É o ponto médio entre public e private.' },
+    { q: 'O que é uma lista de inicialização no construtor?',
+      opts: ['Um array de argumentos','A sintaxe Construtor() : campo(valor) que inicializa membros antes do corpo','Um std::list de parâmetros','O mesmo que o corpo do construtor'], correct: 1,
+      explain: 'A lista de inicialização (após ":") inicializa membros antes do corpo do construtor ser executado. É obrigatória para membros const, referências e subclasses sem construtor padrão.' },
+    { q: 'Para que serve o destrutor (~NomeClasse())?',
+      opts: ['Para deletar a classe da memória do compilador','Chamado automaticamente quando o objeto é destruído — libera recursos adquiridos','Para construir o objeto inversamente','É apenas uma convenção de nomenclatura'], correct: 1,
+      explain: 'O destrutor é chamado quando o objeto sai de escopo ou é deletado. É o lugar correto para liberar recursos como memória alocada, arquivos abertos e conexões — implementando RAII.' },
+    { q: 'O que garante o keyword "const" num método: int get() const?',
+      opts: ['O método retorna uma constante','O método não pode modificar o estado do objeto','O método é executado em compile-time','O retorno não pode ser modificado'], correct: 1,
+      explain: 'Um método const garante que não modifica nenhum membro do objeto (exceto membros marcados com mutable). Permite chamar o método em objetos const e serve como documentação de ausência de efeitos colaterais.' }
+  ],
+  mod2: [
+    { q: 'Para que serve o keyword "virtual" num método?',
+      opts: ['Torna o método mais rápido','Permite que classes derivadas sobrescrevam o método com dispatch dinâmico','Torna o método privado para subclasses','Cria uma cópia virtual do método'], correct: 1,
+      explain: 'virtual ativa o despacho dinâmico (dynamic dispatch): ao chamar o método através de um ponteiro ou referência de tipo base, o C++ escolhe em runtime a implementação correta da subclasse.' },
+    { q: 'O que é uma classe abstrata em C++?',
+      opts: ['Uma classe sem atributos','Uma classe com pelo menos um método puramente virtual (= 0) que não pode ser instanciada diretamente','Uma classe private','Uma template class'], correct: 1,
+      explain: 'Classe abstrata tem pelo menos um método puramente virtual (declarado com = 0). Não pode ser instanciada diretamente — serve como interface/contrato que subclasses concretas devem implementar.' },
+    { q: 'Por que destrutor de classe base deve ser virtual?',
+      opts: ['Para que subclasses não possam ter destrutor','Para garantir que ao deletar via ponteiro de base, o destrutor da subclasse seja chamado corretamente','Virtual destrutores são mais rápidos','É apenas convenção estética'], correct: 1,
+      explain: 'Sem virtual, deletar um objeto derivado através de um ponteiro de tipo base chama apenas o destrutor da base — o da subclasse é ignorado. Isso causa memory leak de recursos alocados pela subclasse.' },
+    { q: 'O que faz override ao declarar um método em subclasse?',
+      opts: ['Cria uma segunda versão paralela do método','O compilador verifica que o método realmente existe como virtual na base — erro se não existir','Impede outras subclasses de sobrescrever','Torna o método mais lento por overhead de verificação'], correct: 1,
+      explain: 'override é verificado em compile-time: se o método não existe como virtual na base (ou se assinatura diverge), o compilador emite erro. Sem override, um typo no nome cria silenciosamente um novo método em vez de sobrescrever.' }
+  ],
+  mod3: [
+    { q: 'O que é um function template?',
+      opts: ['Uma função que retorna uma template','Uma função genérica parametrizada por tipo, gerando código para cada tipo usado','Um modelo de design pattern','Uma macro C++ aprimorada'], correct: 1,
+      explain: 'Um function template é uma "receita" para gerar funções para tipos específicos. O compilador instancia (gera) o código concreto para cada tipo em que a função é usada.' },
+    { q: 'Qual a principal vantagem de std::vector sobre arrays C?',
+      opts: ['É mais rápido sempre','Tem tamanho dinâmico, gerencia memória automaticamente e sabe seu próprio tamanho','Evita copy construction','Funciona sem #include'], correct: 1,
+      explain: 'std::vector gerencia memória automaticamente (sem malloc/free), cresce dinamicamente com push_back, sabe seu tamanho com size(), e é destruído automaticamente. Arrays C têm tamanho fixo em tempo de compilação.' },
+    { q: 'Qual a diferença entre std::string e char* para armazenar strings?',
+      opts: ['std::string é apenas um typedef para char*','std::string gerencia memória automaticamente, tem operadores == e +=, e métodos como find/substr','char* é mais seguro e moderno','std::string só funciona em C++17'], correct: 1,
+      explain: 'std::string é uma classe que gerencia a memória do buffer internamente. Suporta comparação com ==, concatenação com +=, e vários métodos utilitários. Com char*, você gerencia a memória manualmente e usa funções de string.h.' },
+    { q: 'O que faz std::map<string, float>?',
+      opts: ['Mapeia floats para strings','Cria um dicionário ordenado: dado uma chave string, retorna o float associado','Converte string para float','Cria uma lista de pares desordenada'], correct: 1,
+      explain: 'std::map é um contêiner de pares chave-valor mantidos em ordem (por árvore balanceada). Acesso por chave em O(log n). Para acesso em O(1) médio, use std::unordered_map.' }
+  ],
+  mod4: [
+    { q: 'Qual a diferença fundamental entre referência e ponteiro em C++?',
+      opts: ['Referências são ponteiros disfarçados sem diferença real','Referências não podem ser nulas, não podem ser reassociadas e têm sintaxe de variável normal','Ponteiros são mais eficientes sempre','Referências só funcionam com classes'], correct: 1,
+      explain: 'Referências são aliases para objetos existentes. Ao contrário de ponteiros: sempre válidas (nunca NULL), sempre referem ao mesmo objeto (não reassociáveis) e usam sintaxe de variável normal (sem * ou ->).' },
+    { q: 'O que é RAII em C++?',
+      opts: ['Um design pattern para herança','Um padrão onde recursos são adquiridos no construtor e liberados no destrutor, ligando a vida do recurso à do objeto','Random Access Initialization Interface','Um modo de acesso a arrays'], correct: 1,
+      explain: 'RAII (Resource Acquisition Is Initialization): o construtor adquire o recurso, o destrutor libera. Garante que todo recurso é liberado mesmo em caso de exceção ou retorno antecipado, eliminando resource leaks.' },
+    { q: 'Qual o erro de usar delete ao invés de delete[] para um array?',
+      opts: ['Erro de compilação','Comportamento indefinido: geralmente corrompe o heap ou vaza memória dos elementos além do primeiro','O compilador corrige automaticamente','Libera apenas o primeiro elemento, o resto fica na heap'], correct: 1,
+      explain: 'delete libera um único objeto. delete[] libera um array, chamando o destrutor de cada elemento antes. Usar delete em um array é comportamento indefinido — na prática, corrupção de heap ou apenas o primeiro destrutor é chamado.' },
+    { q: 'Qual a vantagem de unique_ptr sobre raw new/delete?',
+      opts: ['unique_ptr é mais rápido','Gerencia automaticamente o delete: o objeto é destruído quando o unique_ptr sai do escopo, sem memory leak mesmo em exceções','Permite múltiplos donos do mesmo objeto','É mais compatível com C'] , correct: 1,
+      explain: 'unique_ptr é um RAII wrapper: no destrutor, chama delete automaticamente. Sem unique_ptr, qualquer caminho de saída da função (return antecipado, exceção) que pule o delete manual causa memory leak.' }
+  ],
+  mod5: [
+    { q: 'O que faz o keyword "auto" em: auto x = 42?',
+      opts: ['Cria uma variável automática (mesmo que local)','O compilador deduz o tipo de x (int) a partir do valor inicial','Cria x na heap','Indica que x pode mudar de tipo depois'], correct: 1,
+      explain: 'auto pede ao compilador que deduza o tipo da variável a partir da expressão de inicialização. Em auto x = 42, x será int. Em auto f = 3.14, f será double.' },
+    { q: 'Qual a diferença entre nullptr e NULL em C++?',
+      opts: ['São idênticos em C++','nullptr tem tipo próprio (nullptr_t) evitando ambiguidades; NULL é simplesmente 0','nullptr é mais lento','NULL é o padrão moderno'], correct: 1,
+      explain: 'NULL é tipicamente #define NULL 0. Em sobrecarga de funções, f(NULL) pode ser ambíguo entre f(int) e f(ptr). nullptr tem tipo nullptr_t e converte inequivocamente para qualquer tipo de ponteiro, mas não para int.' },
+    { q: 'O que é uma lambda function?',
+      opts: ['Uma função em classe base','Uma função anônima definida inline no código, podendo capturar variáveis do escopo','Uma função template genérica','Uma função que retorna outra função'], correct: 1,
+      explain: 'Lambda: [captura](params){ corpo }. Cria uma função anônima inline. A captura define quais variáveis do escopo externo estão acessíveis: [=] por valor, [&] por referência, [var] captura específica.' },
+    { q: 'Qual a vantagem de enum class sobre enum em C++?',
+      opts: ['enum class é mais rápido','enum class tem escopo próprio evitando colisão de nomes e não converte implicitamente para int','enum class funciona com strings','enum é obsoleto em C++11'], correct: 1,
+      explain: 'enum class (scoped enum): membros ficam no escopo do enum (Cor::Vermelho, não apenas Vermelho), não há conversão implícita para int (if(cor == 1) é erro de compilação), e dois enums podem ter membros com o mesmo nome.' },
+    { q: 'O que faz constexpr em: constexpr int N = 9?',
+      opts: ['N é const mas pode ser mudado via cast','N é avaliado em tempo de compilação e pode ser usado em contextos que exigem constante (tamanho de array, etc.)','constexpr é o mesmo que const','N fica mais rápido de acessar em runtime'], correct: 1,
+      explain: 'constexpr garante que a expressão é avaliada em tempo de compilação. Diferente de const (que pode ser um valor determinado em runtime), constexpr pode ser usado como tamanho de array estático, argumento de template, etc.' }
+  ]
+};
+
+const answered = {};
+const TOTAL = 5;
+
+function renderQuiz(modId) {
+  const container = document.getElementById('quiz-' + modId);
+  if (!container) return;
+  const qs = QUIZZES[modId];
+  answered[modId] = new Array(qs.length).fill(false);
+  let html = '';
+  qs.forEach((q, qi) => {
+    html += `<div class="quiz-item" id="${modId}-q${qi}">
+      <div class="question">${qi + 1}. ${q.q}</div>
+      <div class="options">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<button class="opt-btn" onclick="verify('${modId}',${qi},${oi},${q.correct})">${opt}</button>`;
+    });
+    html += `</div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function verify(modId, qi, chosen, correct) {
+  const item = document.getElementById(`${modId}-q${qi}`);
+  const btns = item.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[correct].classList.add('correct');
+  if (chosen !== correct) btns[chosen].classList.add('wrong');
+  const exp = document.createElement('div');
+  exp.className = 'explanation';
+  exp.textContent = QUIZZES[modId][qi].explain;
+  item.appendChild(exp);
+  answered[modId][qi] = true;
+  checkComplete(modId);
+}
+
+function checkComplete(modId) {
+  if (answered[modId].every(Boolean)) {
+    const qs = document.getElementById('quiz-' + modId);
+    const msg = document.createElement('div');
+    msg.className = 'quiz-done-msg';
+    msg.textContent = '✓ Módulo concluído!';
+    qs.appendChild(msg);
+    localStorage.setItem('tc_cpp_' + modId, 'done');
+    updateUI();
+  }
+}
+
+function updateUI() {
+  let done = 0;
+  for (let i = 1; i <= TOTAL; i++) {
+    const key = 'mod' + i;
+    const isDone = localStorage.getItem('tc_cpp_' + key) === 'done';
+    if (isDone) done++;
+    const badge = document.getElementById('badge-' + key);
+    const link  = document.getElementById('link-' + key);
+    if (badge) { badge.textContent = isDone ? 'Concluído ✓' : 'Em progresso'; badge.className = isDone ? 'badge done-badge' : 'badge'; }
+    if (link)  { link.className = isDone ? 'mod-link done' : 'mod-link'; }
+  }
+  document.getElementById('sb-prog').style.width = (done / TOTAL * 100) + '%';
+  document.getElementById('sb-lbl').textContent = done + ' / ' + TOTAL + ' concluídos';
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+
+const sections = document.querySelectorAll('.module');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.mod-link').forEach(l => l.classList.remove('active'));
+      const link = document.getElementById('link-' + e.target.id);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+for (let i = 1; i <= TOTAL; i++) renderQuiz('mod' + i);
+updateUI();
+</script>
+</body>
+</html>

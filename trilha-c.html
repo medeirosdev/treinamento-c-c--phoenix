@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha C — C/C++ Training</title>
+<style>
+  :root {
+    --bg: #080600; --surface: #110e00; --surface2: #1a1500;
+    --orange: #ff6a00; --gold: #ffaa00;
+    --text: #f0ece0; --muted: #7a6a50; --border: rgba(255,106,0,0.18);
+    --sidebar-w: 260px;
+    --green: #4caf50; --red: #f44336;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border);
+    overflow-y: auto; z-index: 100; padding: 0 0 40px;
+    transition: transform .28s ease;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .sidebar-header a { color: var(--orange); text-decoration: none; font-size: .82rem; }
+  .sidebar-header h3 { font-size: .95rem; margin-top: 8px; color: var(--gold); }
+  .sidebar-header p { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+  .mod-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; font-size: .85rem;
+    border-left: 3px solid transparent; transition: all .15s; color: var(--muted);
+    text-decoration: none;
+  }
+  .mod-link:hover { background: rgba(255,106,0,.06); color: var(--text); }
+  .mod-link.active { border-left-color: var(--orange); color: var(--orange); background: rgba(255,106,0,.08); }
+  .mod-link.done { color: var(--green); }
+  .mod-link.done::after { content: ' ✓'; font-size: .75rem; }
+  .mod-num {
+    min-width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,106,0,.15); color: var(--orange);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700;
+  }
+  .sidebar-prog { padding: 16px 20px 8px; }
+  .sidebar-prog-bar { height: 4px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+  .sidebar-prog-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--gold)); border-radius: 4px; transition: width .5s; }
+  .sidebar-prog-lbl { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+
+  /* ── Hamburger ── */
+  .hamburger {
+    display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    width: 40px; height: 40px; cursor: pointer; align-items: center;
+    justify-content: center; flex-direction: column; gap: 5px;
+  }
+  .hamburger span { display: block; width: 20px; height: 2px; background: var(--orange); border-radius: 2px; }
+
+  /* ── Main ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    min-height: 100vh; padding: 0 0 80px;
+  }
+  .topbar {
+    padding: 18px 40px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(8,6,0,.9); backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .lang-badge {
+    background: rgba(255,106,0,.15); color: var(--orange);
+    border: 1px solid rgba(255,106,0,.3); border-radius: 6px;
+    padding: 2px 10px; font-size: .75rem; font-weight: 700;
+  }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+
+  /* ── Module sections ── */
+  .module { padding: 40px 40px 60px; border-bottom: 1px solid var(--border); scroll-margin-top: 72px; }
+  .mod-title {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .mod-title .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--orange), var(--gold));
+    color: #000; font-weight: 800; font-size: .88rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mod-title h2 { font-size: 1.5rem; font-weight: 800; }
+  .mod-title .badge {
+    margin-left: auto; padding: 3px 10px;
+    background: rgba(255,106,0,.1); color: var(--muted);
+    border-radius: 99px; font-size: .72rem;
+  }
+  .mod-title .badge.done-badge { background: rgba(76,175,80,.15); color: var(--green); }
+
+  /* ── Content typography ── */
+  .content-block { max-width: 780px; }
+  .content-block h3 { font-size: 1.1rem; color: var(--gold); margin: 28px 0 10px; }
+  .content-block h4 { font-size: .95rem; color: var(--orange); margin: 20px 0 8px; }
+  .content-block p { font-size: .93rem; line-height: 1.75; color: #d8d0c0; margin-bottom: 12px; }
+  .content-block ul, .content-block ol { padding-left: 22px; margin-bottom: 14px; }
+  .content-block li { font-size: .93rem; line-height: 1.7; color: #d8d0c0; margin-bottom: 4px; }
+  .content-block strong { color: var(--text); }
+  .content-block code {
+    background: rgba(255,106,0,.1); color: var(--gold);
+    padding: 1px 6px; border-radius: 4px; font-family: 'Consolas', monospace;
+    font-size: .87em;
+  }
+
+  /* ── Code blocks ── */
+  pre {
+    background: #0c0a00; border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 22px; overflow-x: auto;
+    font-family: 'Consolas', 'Courier New', monospace; font-size: .85rem;
+    line-height: 1.65; margin: 16px 0;
+    color: #c8c0a8;
+  }
+  pre .c  { color: #5a7a5a; font-style: italic; }
+  pre .kw { color: #cc88ff; }
+  pre .ty { color: #4fc3f7; }
+  pre .fn { color: var(--gold); }
+  pre .str { color: #a5d6a7; }
+  pre .num { color: #ffab40; }
+  pre .pp { color: #ef9a9a; }
+
+  /* ── Info box ── */
+  .info-box {
+    background: rgba(255,106,0,.07); border-left: 4px solid var(--orange);
+    border-radius: 0 8px 8px 0; padding: 14px 18px;
+    margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0;
+  }
+  .warn-box {
+    background: rgba(244,67,54,.08); border-left: 4px solid var(--red);
+    border-radius: 0 8px 8px 0; padding: 14px 18px;
+    margin: 16px 0; font-size: .88rem; line-height: 1.65; color: #d8d0c0;
+  }
+
+  /* ── Table ── */
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .86rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 14px; text-align: left; }
+  th { background: rgba(255,106,0,.12); color: var(--gold); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── Quiz ── */
+  .quiz-section {
+    margin-top: 36px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 12px; padding: 26px 28px;
+    max-width: 780px;
+  }
+  .quiz-section h3 { font-size: 1rem; color: var(--gold); margin-bottom: 18px; }
+  .quiz-item { margin-bottom: 22px; }
+  .quiz-item .question { font-size: .92rem; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+  .options { display: flex; flex-direction: column; gap: 7px; }
+  .opt-btn {
+    background: rgba(255,255,255,.04); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 14px; text-align: left;
+    cursor: pointer; font-size: .87rem; color: var(--text);
+    transition: all .15s;
+  }
+  .opt-btn:hover:not([disabled]) { background: rgba(255,106,0,.1); border-color: var(--orange); }
+  .opt-btn.correct { background: rgba(76,175,80,.15); border-color: var(--green); color: var(--green); }
+  .opt-btn.wrong   { background: rgba(244,67,54,.12); border-color: var(--red); color: var(--red); }
+  .explanation { font-size: .82rem; color: var(--muted); margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,.03); border-radius: 6px; line-height: 1.55; }
+  .quiz-done-msg { text-align: center; padding: 14px; color: var(--green); font-weight: 700; font-size: .95rem; margin-top: 10px; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .hamburger { display: flex; }
+    .module { padding: 60px 20px 40px; }
+    .topbar { padding: 14px 20px; }
+    .quiz-section { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">← Voltar ao início</a>
+    <h3>Trilha C</h3>
+    <p>Linguagem C · 8 módulos</p>
+  </div>
+  <div class="sidebar-prog">
+    <div class="sidebar-prog-bar"><div class="sidebar-prog-fill" id="sb-prog" style="width:0%"></div></div>
+    <div class="sidebar-prog-lbl" id="sb-lbl">0 / 8 concluídos</div>
+  </div>
+  <a class="mod-link" href="#mod1" id="link-mod1" onclick="closeSidebar()"><span class="mod-num">1</span> Fundamentos</a>
+  <a class="mod-link" href="#mod2" id="link-mod2" onclick="closeSidebar()"><span class="mod-num">2</span> Operadores</a>
+  <a class="mod-link" href="#mod3" id="link-mod3" onclick="closeSidebar()"><span class="mod-num">3</span> Controle de Fluxo</a>
+  <a class="mod-link" href="#mod4" id="link-mod4" onclick="closeSidebar()"><span class="mod-num">4</span> Funções</a>
+  <a class="mod-link" href="#mod5" id="link-mod5" onclick="closeSidebar()"><span class="mod-num">5</span> Arrays e Strings</a>
+  <a class="mod-link" href="#mod6" id="link-mod6" onclick="closeSidebar()"><span class="mod-num">6</span> Ponteiros</a>
+  <a class="mod-link" href="#mod7" id="link-mod7" onclick="closeSidebar()"><span class="mod-num">7</span> Structs e Enums</a>
+  <a class="mod-link" href="#mod8" id="link-mod8" onclick="closeSidebar()"><span class="mod-num">8</span> Memória e Arquivos</a>
+</nav>
+
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="main">
+  <div class="topbar">
+    <span class="lang-badge">C</span>
+    <h1>Trilha C — Linguagem C do Zero</h1>
+  </div>
+
+  <!-- ══════════════ MODULE 1 ══════════════ -->
+  <section class="module" id="mod1">
+    <div class="mod-title">
+      <div class="num">1</div>
+      <h2>Fundamentos do C</h2>
+      <span class="badge" id="badge-mod1">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Por que C?</h3>
+      <p>C é a linguagem que moldou a computação moderna. O kernel do Linux, o interpretador do Python, o Arduino — tudo escrito em C. É rápida, próxima do hardware e oferece controle total de memória. Entender C é entender como o computador realmente funciona.</p>
+
+      <h3>Estrutura mínima de um programa</h3>
+      <p>Todo programa C começa com a função <code>main()</code>. O sistema operacional chama <code>main</code> quando o programa é executado.</p>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>   <span class="c">// biblioteca de I/O padrão</span>
+
+<span class="ty">int</span> <span class="fn">main</span>(<span class="ty">void</span>) {
+    <span class="fn">printf</span>(<span class="str">"Olá, mundo!\n"</span>);  <span class="c">// \n = nova linha</span>
+    <span class="kw">return</span> <span class="num">0</span>;              <span class="c">// 0 = sucesso pro sistema operacional</span>
+}
+</pre>
+
+      <h3>Processo de compilação</h3>
+      <p>Seu arquivo <code>.c</code> não vai direto para execução. Passa por 4 etapas:</p>
+      <table>
+        <tr><th>Etapa</th><th>O que faz</th><th>Arquivo</th></tr>
+        <tr><td><strong>Pré-processador</strong></td><td>Expande #include, #define</td><td>.c → .i</td></tr>
+        <tr><td><strong>Compilador</strong></td><td>C → Assembly (mnemônicos)</td><td>.i → .s</td></tr>
+        <tr><td><strong>Montador</strong></td><td>Assembly → código de máquina</td><td>.s → .o</td></tr>
+        <tr><td><strong>Linker</strong></td><td>Junta .o + bibliotecas</td><td>.o → executável</td></tr>
+      </table>
+      <pre><span class="c"># compilar e linkar em um passo só</span>
+gcc meu_arquivo.c -o meu_programa
+./meu_programa</pre>
+
+      <h3>Tipos primitivos</h3>
+      <p>C tem tipos de dado com tamanhos fixos (em 32/64-bit típico):</p>
+      <table>
+        <tr><th>Tipo</th><th>Tamanho</th><th>Faixa</th><th>Uso</th></tr>
+        <tr><td><code>char</code></td><td>1 byte</td><td>-128 a 127</td><td>Caracteres, bytes</td></tr>
+        <tr><td><code>unsigned char</code></td><td>1 byte</td><td>0 a 255</td><td>Bytes sem sinal</td></tr>
+        <tr><td><code>int</code></td><td>4 bytes</td><td>±2,1 bilhões</td><td>Inteiros gerais</td></tr>
+        <tr><td><code>unsigned int</code></td><td>4 bytes</td><td>0 a 4,3 bilhões</td><td>Contadores</td></tr>
+        <tr><td><code>long</code></td><td>4/8 bytes</td><td>±2,1 bi (32) / enorme (64)</td><td>Inteiros grandes</td></tr>
+        <tr><td><code>float</code></td><td>4 bytes</td><td>±3.4e38</td><td>Ponto flutuante</td></tr>
+        <tr><td><code>double</code></td><td>8 bytes</td><td>±1.8e308</td><td>Precisão dupla</td></tr>
+      </table>
+
+      <h4>Tipos de tamanho garantido (stdint.h)</h4>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;stdint.h&gt;</span>
+
+<span class="ty">uint8_t</span>  a = <span class="num">255</span>;      <span class="c">// sempre 8 bits sem sinal</span>
+<span class="ty">int16_t</span>  b = -<span class="num">1000</span>;    <span class="c">// sempre 16 bits com sinal</span>
+<span class="ty">uint32_t</span> c = <span class="num">1000000</span>;  <span class="c">// sempre 32 bits sem sinal</span>
+</pre>
+      <div class="info-box">Em sistemas embarcados (Arduino, ESP32), use sempre os tipos com tamanho explícito (<code>uint8_t</code>, <code>int32_t</code>, etc.) para garantir o comportamento correto em qualquer plataforma.</div>
+
+      <h3>Variáveis e constantes</h3>
+<pre>
+<span class="ty">int</span> idade = <span class="num">18</span>;              <span class="c">// variável mutável</span>
+<span class="kw">const</span> <span class="ty">float</span> PI = <span class="num">3.14159f</span>;  <span class="c">// constante (erro se tentar mudar)</span>
+<span class="pp">#define</span> LIMITE <span class="num">100</span>          <span class="c">// macro: substituição textual</span>
+
+<span class="c">// const é melhor que #define: tem tipo, escopo e aparece no debugger</span>
+</pre>
+
+      <h3>printf e scanf</h3>
+      <p>Formatadores mais comuns:</p>
+      <table>
+        <tr><th>Formatador</th><th>Tipo</th><th>Exemplo</th></tr>
+        <tr><td><code>%d</code></td><td>int</td><td><code>printf("%d", 42)</code></td></tr>
+        <tr><td><code>%u</code></td><td>unsigned int</td><td><code>printf("%u", 300u)</code></td></tr>
+        <tr><td><code>%f</code></td><td>float/double</td><td><code>printf("%.2f", 3.14)</code></td></tr>
+        <tr><td><code>%c</code></td><td>char</td><td><code>printf("%c", 'A')</code></td></tr>
+        <tr><td><code>%s</code></td><td>string (char*)</td><td><code>printf("%s", "oi")</code></td></tr>
+        <tr><td><code>%p</code></td><td>ponteiro</td><td><code>printf("%p", &x)</code></td></tr>
+      </table>
+<pre>
+<span class="ty">int</span> n;
+<span class="fn">printf</span>(<span class="str">"Digite um número: "</span>);
+<span class="fn">scanf</span>(<span class="str">"%d"</span>, &amp;n);  <span class="c">// & = endereço de n (obrigatório!)</span>
+<span class="fn">printf</span>(<span class="str">"Você digitou: %d\n"</span>, n);
+</pre>
+      <div class="warn-box"><strong>Atenção:</strong> No <code>scanf</code> sempre use <code>&</code> antes do nome da variável (exceto strings/arrays). Esquecer o <code>&</code> é um dos erros mais comuns em C e causa comportamento indefinido.</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 1</h3>
+      <div id="quiz-mod1"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 2 ══════════════ -->
+  <section class="module" id="mod2">
+    <div class="mod-title">
+      <div class="num">2</div>
+      <h2>Operadores e Expressões</h2>
+      <span class="badge" id="badge-mod2">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Operadores aritméticos</h3>
+<pre>
+<span class="ty">int</span> a = <span class="num">10</span>, b = <span class="num">3</span>;
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, a + b);   <span class="c">// 13</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, a - b);   <span class="c">// 7</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, a * b);   <span class="c">// 30</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, a / b);   <span class="c">// 3  ← divisão inteira! trunca</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, a % b);   <span class="c">// 1  ← resto (módulo)</span>
+</pre>
+      <div class="warn-box"><strong>Armadilha de divisão inteira:</strong> <code>10 / 3</code> em C resulta em <code>3</code>, não <code>3.333...</code> Para obter float, converta: <code>(float)a / b</code> ou use <code>10.0 / 3</code>.</div>
+
+      <h3>Operadores de comparação e lógicos</h3>
+<pre>
+<span class="ty">int</span> x = <span class="num">5</span>;
+x == <span class="num">5</span>   <span class="c">// igual?      → 1 (verdadeiro)</span>
+x != <span class="num">3</span>   <span class="c">// diferente?  → 1</span>
+x &gt;  <span class="num">3</span>   <span class="c">// maior?      → 1</span>
+x &lt;= <span class="num">5</span>  <span class="c">// menor igual → 1</span>
+
+<span class="c">// Lógicos</span>
+x &gt; <span class="num">0</span> &amp;&amp; x &lt; <span class="num">10</span>   <span class="c">// AND: ambos verdadeiros?</span>
+x &lt; <span class="num">0</span> || x &gt; <span class="num">100</span>  <span class="c">// OR: pelo menos um?</span>
+!<span class="num">0</span>               <span class="c">// NOT: inverte → 1</span>
+</pre>
+      <div class="warn-box"><strong>= vs ==:</strong> <code>if (x = 5)</code> <em>atribui</em> 5 a x (sempre verdadeiro!). <code>if (x == 5)</code> <em>compara</em>. Esse bug é silencioso e perigoso. Muitos programadores escrevem <code>if (5 == x)</code> para forçar erro de compilação se usarem <code>=</code> por acidente.</div>
+
+      <h3>Operadores bitwise</h3>
+      <p>Extremamente importantes em sistemas embarcados para manipular registradores e flags:</p>
+<pre>
+<span class="ty">uint8_t</span> reg = <span class="num">0b00101010</span>;  <span class="c">// valor binário</span>
+
+reg |  <span class="num">0b00000001</span>   <span class="c">// OR:  seta bit 0</span>
+reg &amp; ~<span class="num">0b00000001</span>   <span class="c">// AND NOT: limpa bit 0</span>
+reg ^  <span class="num">0b00000100</span>   <span class="c">// XOR: inverte bit 2</span>
+reg &lt;&lt; <span class="num">1</span>            <span class="c">// shift left:  multiplica por 2</span>
+reg &gt;&gt; <span class="num">1</span>            <span class="c">// shift right: divide por 2</span>
+
+<span class="c">// Exemplo prático: setar bit 3 sem afetar outros</span>
+reg |= (<span class="num">1</span> &lt;&lt; <span class="num">3</span>);  <span class="c">// equivale a reg = reg | 0b00001000</span>
+</pre>
+
+      <h3>Incremento e operadores compostos</h3>
+<pre>
+<span class="ty">int</span> n = <span class="num">5</span>;
+n++;      <span class="c">// n = 6  (pós-incremento: usa n depois incrementa)</span>
+++n;      <span class="c">// n = 7  (pré-incremento: incrementa antes de usar)</span>
+n--;      <span class="c">// n = 6</span>
+n += <span class="num">3</span>;   <span class="c">// n = 9   (equivale a n = n + 3)</span>
+n *= <span class="num">2</span>;   <span class="c">// n = 18</span>
+n /= <span class="num">6</span>;   <span class="c">// n = 3</span>
+n %= <span class="num">2</span>;   <span class="c">// n = 1</span>
+</pre>
+
+      <h3>Cast de tipo</h3>
+<pre>
+<span class="ty">int</span>   a = <span class="num">7</span>, b = <span class="num">2</span>;
+<span class="ty">float</span> r = (<span class="ty">float</span>)a / b;   <span class="c">// 3.5  — cast explícito</span>
+<span class="ty">float</span> s = a / b;          <span class="c">// 3.0  — divisão inteira primeiro!</span>
+
+<span class="ty">int</span> grande = <span class="num">300</span>;
+<span class="ty">uint8_t</span> pequeno = (<span class="ty">uint8_t</span>)grande;  <span class="c">// 44  — overflow! 300 % 256</span>
+</pre>
+
+      <h3>Operador ternário</h3>
+<pre>
+<span class="ty">int</span> max = (a &gt; b) ? a : b;  <span class="c">// se a>b então max=a, senão max=b</span>
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 2</h3>
+      <div id="quiz-mod2"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 3 ══════════════ -->
+  <section class="module" id="mod3">
+    <div class="mod-title">
+      <div class="num">3</div>
+      <h2>Controle de Fluxo</h2>
+      <span class="badge" id="badge-mod3">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>if / else if / else</h3>
+<pre>
+<span class="ty">int</span> nota = <span class="num">75</span>;
+
+<span class="kw">if</span> (nota &gt;= <span class="num">90</span>) {
+    <span class="fn">printf</span>(<span class="str">"A\n"</span>);
+} <span class="kw">else if</span> (nota &gt;= <span class="num">70</span>) {
+    <span class="fn">printf</span>(<span class="str">"B\n"</span>);   <span class="c">// ← cai aqui</span>
+} <span class="kw">else if</span> (nota &gt;= <span class="num">50</span>) {
+    <span class="fn">printf</span>(<span class="str">"C\n"</span>);
+} <span class="kw">else</span> {
+    <span class="fn">printf</span>(<span class="str">"Reprovado\n"</span>);
+}
+</pre>
+
+      <h3>switch / case</h3>
+      <p>Use quando comparar uma variável inteira contra valores fixos:</p>
+<pre>
+<span class="ty">int</span> dia = <span class="num">3</span>;
+<span class="kw">switch</span> (dia) {
+    <span class="kw">case</span> <span class="num">1</span>: <span class="fn">printf</span>(<span class="str">"Segunda\n"</span>); <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">2</span>: <span class="fn">printf</span>(<span class="str">"Terça\n"</span>);   <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">3</span>: <span class="fn">printf</span>(<span class="str">"Quarta\n"</span>);  <span class="kw">break</span>;
+    <span class="c">// sem break → "fall-through": executa case seguinte também!</span>
+    <span class="kw">case</span> <span class="num">6</span>:
+    <span class="kw">case</span> <span class="num">7</span>: <span class="fn">printf</span>(<span class="str">"Fim de semana\n"</span>); <span class="kw">break</span>;
+    <span class="kw">default</span>: <span class="fn">printf</span>(<span class="str">"Inválido\n"</span>);
+}
+</pre>
+      <div class="warn-box"><strong>Fall-through:</strong> Esquecer o <code>break</code> faz o código "cair" no próximo case. Às vezes intencional (case 6 e 7 acima), mas quase sempre um bug.</div>
+
+      <h3>Loop while</h3>
+<pre>
+<span class="ty">int</span> i = <span class="num">0</span>;
+<span class="kw">while</span> (i &lt; <span class="num">5</span>) {
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, i);  <span class="c">// 0 1 2 3 4</span>
+    i++;
+}
+</pre>
+
+      <h3>Loop for</h3>
+<pre>
+<span class="c">// for (inicialização; condição; passo)</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; <span class="num">5</span>; i++) {
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, i);
+}
+
+<span class="c">// Iterando de trás pra frente</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">4</span>; i &gt;= <span class="num">0</span>; i--) {
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, i);  <span class="c">// 4 3 2 1 0</span>
+}
+
+<span class="c">// Loop infinito controlado</span>
+<span class="kw">for</span> (;;) {
+    <span class="c">// executa forever, sai com break</span>
+    <span class="kw">break</span>;
+}
+</pre>
+
+      <h3>Loop do-while</h3>
+      <p>Executa o corpo <em>pelo menos uma vez</em>, depois verifica a condição:</p>
+<pre>
+<span class="ty">int</span> n;
+<span class="kw">do</span> {
+    <span class="fn">printf</span>(<span class="str">"Digite um número positivo: "</span>);
+    <span class="fn">scanf</span>(<span class="str">"%d"</span>, &amp;n);
+} <span class="kw">while</span> (n &lt;= <span class="num">0</span>);  <span class="c">// repete até ser positivo</span>
+</pre>
+
+      <h3>break e continue</h3>
+<pre>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; <span class="num">10</span>; i++) {
+    <span class="kw">if</span> (i == <span class="num">3</span>) <span class="kw">continue</span>;  <span class="c">// pula i=3, vai pro próximo</span>
+    <span class="kw">if</span> (i == <span class="num">7</span>) <span class="kw">break</span>;     <span class="c">// sai do loop ao chegar em 7</span>
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, i);      <span class="c">// 0 1 2 4 5 6</span>
+}
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 3</h3>
+      <div id="quiz-mod3"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 4 ══════════════ -->
+  <section class="module" id="mod4">
+    <div class="mod-title">
+      <div class="num">4</div>
+      <h2>Funções</h2>
+      <span class="badge" id="badge-mod4">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Anatomia de uma função</h3>
+<pre>
+<span class="c">// tipo_retorno nome(tipo param1, tipo param2, ...) { corpo }</span>
+
+<span class="ty">int</span> <span class="fn">soma</span>(<span class="ty">int</span> a, <span class="ty">int</span> b) {
+    <span class="kw">return</span> a + b;
+}
+
+<span class="ty">void</span> <span class="fn">saudar</span>(<span class="ty">void</span>) {   <span class="c">// void = não recebe / não retorna nada</span>
+    <span class="fn">printf</span>(<span class="str">"Olá!\n"</span>);
+}
+
+<span class="ty">int</span> <span class="fn">main</span>(<span class="ty">void</span>) {
+    <span class="ty">int</span> resultado = <span class="fn">soma</span>(<span class="num">3</span>, <span class="num">4</span>);  <span class="c">// 7</span>
+    <span class="fn">saudar</span>();
+    <span class="kw">return</span> <span class="num">0</span>;
+}
+</pre>
+
+      <h3>Protótipos (declaração antecipada)</h3>
+      <p>O compilador lê o arquivo de cima pra baixo. Se você chamar uma função antes de defini-la, ele reclama. Protótipos resolvem isso:</p>
+<pre>
+<span class="c">// Protótipo: informa a assinatura antes da definição</span>
+<span class="ty">float</span> <span class="fn">media</span>(<span class="ty">float</span> a, <span class="ty">float</span> b);  <span class="c">// ← ponto e vírgula!</span>
+
+<span class="ty">int</span> <span class="fn">main</span>(<span class="ty">void</span>) {
+    <span class="fn">printf</span>(<span class="str">"%.1f\n"</span>, <span class="fn">media</span>(<span class="num">8.0f</span>, <span class="num">6.0f</span>));  <span class="c">// 7.0</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="ty">float</span> <span class="fn">media</span>(<span class="ty">float</span> a, <span class="ty">float</span> b) {
+    <span class="kw">return</span> (a + b) / <span class="num">2.0f</span>;
+}
+</pre>
+
+      <h3>Passagem por valor vs por referência</h3>
+<pre>
+<span class="ty">void</span> <span class="fn">tentaTrocar</span>(<span class="ty">int</span> a, <span class="ty">int</span> b) {
+    <span class="ty">int</span> tmp = a; a = b; b = tmp;
+    <span class="c">// a e b são CÓPIAS — original não muda!</span>
+}
+
+<span class="ty">void</span> <span class="fn">trocar</span>(<span class="ty">int</span> *a, <span class="ty">int</span> *b) {  <span class="c">// ponteiros: "passa o endereço"</span>
+    <span class="ty">int</span> tmp = *a; *a = *b; *b = tmp;
+    <span class="c">// *a e *b acessam os originais — funciona!</span>
+}
+
+<span class="ty">int</span> x = <span class="num">1</span>, y = <span class="num">2</span>;
+<span class="fn">trocar</span>(&amp;x, &amp;y);   <span class="c">// x=2, y=1</span>
+</pre>
+
+      <h3>Escopo de variáveis</h3>
+<pre>
+<span class="ty">int</span> global = <span class="num">10</span>;  <span class="c">// visível em todo o arquivo</span>
+
+<span class="ty">void</span> <span class="fn">funcao</span>(<span class="ty">void</span>) {
+    <span class="ty">int</span> local = <span class="num">5</span>;    <span class="c">// existe só dentro da função</span>
+    <span class="kw">static</span> <span class="ty">int</span> conta = <span class="num">0</span>;  <span class="c">// persiste entre chamadas!</span>
+    conta++;
+    <span class="fn">printf</span>(<span class="str">"chamada %d\n"</span>, conta);
+}
+</pre>
+      <div class="info-box"><code>static</code> em variável local: o valor é mantido entre chamadas. Útil para contadores e acumuladores dentro de funções (muito usado em PID, onde precisamos do erro anterior).</div>
+
+      <h3>Recursão</h3>
+<pre>
+<span class="ty">int</span> <span class="fn">fatorial</span>(<span class="ty">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="num">1</span>) <span class="kw">return</span> <span class="num">1</span>;  <span class="c">// caso base: para a recursão</span>
+    <span class="kw">return</span> n * <span class="fn">fatorial</span>(n - <span class="num">1</span>);  <span class="c">// chamada recursiva</span>
+}
+<span class="c">// fatorial(4) = 4 * fatorial(3) = 4 * 3 * 2 * 1 = 24</span>
+</pre>
+      <div class="warn-box">Recursão sem caso base correto → loop infinito e <em>stack overflow</em>. Em sistemas embarcados, evite recursão profunda pois a pilha é limitada (geralmente poucos KB).</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 4</h3>
+      <div id="quiz-mod4"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 5 ══════════════ -->
+  <section class="module" id="mod5">
+    <div class="mod-title">
+      <div class="num">5</div>
+      <h2>Arrays e Strings</h2>
+      <span class="badge" id="badge-mod5">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Arrays unidimensionais</h3>
+<pre>
+<span class="c">// tipo nome[tamanho];   (índices: 0 até tamanho-1)</span>
+<span class="ty">int</span> notas[<span class="num">5</span>] = {<span class="num">80</span>, <span class="num">90</span>, <span class="num">75</span>, <span class="num">85</span>, <span class="num">95</span>};
+<span class="ty">float</span> sensores[<span class="num">9</span>] = {<span class="num">0</span>};  <span class="c">// inicializa tudo com zero</span>
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, notas[<span class="num">0</span>]);  <span class="c">// 80 — primeiro elemento</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, notas[<span class="num">4</span>]);  <span class="c">// 95 — último elemento</span>
+
+<span class="c">// Percorrer array</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; <span class="num">5</span>; i++) {
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, notas[i]);
+}
+</pre>
+      <div class="warn-box"><strong>Out-of-bounds:</strong> Acessar <code>notas[5]</code> ou <code>notas[-1]</code> é comportamento indefinido em C. O compilador não avisa, mas o programa pode crashar ou dar resultados aleatórios.</div>
+
+      <h3>Arrays bidimensionais</h3>
+<pre>
+<span class="ty">int</span> matriz[<span class="num">3</span>][<span class="num">4</span>];  <span class="c">// 3 linhas, 4 colunas</span>
+
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; <span class="num">3</span>; i++)
+    <span class="kw">for</span> (<span class="ty">int</span> j = <span class="num">0</span>; j &lt; <span class="num">4</span>; j++)
+        matriz[i][j] = i * <span class="num">4</span> + j;
+</pre>
+
+      <h3>Strings em C</h3>
+      <p>Em C, strings são arrays de <code>char</code> terminados com o caractere nulo <code>'\0'</code>:</p>
+<pre>
+<span class="ty">char</span> nome[<span class="num">20</span>] = <span class="str">"Phoenix"</span>;  <span class="c">// 'P','h','o','e','n','i','x','\0'</span>
+<span class="ty">char</span> msg[] = <span class="str">"Olá"</span>;          <span class="c">// tamanho inferido: 4 bytes</span>
+
+<span class="fn">printf</span>(<span class="str">"%s\n"</span>, nome);         <span class="c">// imprime até '\0'</span>
+<span class="fn">scanf</span>(<span class="str">"%19s"</span>, nome);          <span class="c">// lê até espaço (19 = tamanho-1)</span>
+</pre>
+
+      <h3>Funções de string (string.h)</h3>
+      <table>
+        <tr><th>Função</th><th>O que faz</th><th>Exemplo</th></tr>
+        <tr><td><code>strlen(s)</code></td><td>Comprimento (sem '\0')</td><td><code>strlen("abc") → 3</code></td></tr>
+        <tr><td><code>strcpy(dst,src)</code></td><td>Copia src → dst</td><td><code>strcpy(buf, "ok")</code></td></tr>
+        <tr><td><code>strcat(dst,src)</code></td><td>Concatena src no fim de dst</td><td><code>strcat(s, "!")</code></td></tr>
+        <tr><td><code>strcmp(a,b)</code></td><td>Compara: 0=igual, <0, >0</td><td><code>if (!strcmp(a,b))</code></td></tr>
+        <tr><td><code>strncpy(d,s,n)</code></td><td>Copia no máx n bytes</td><td>mais seguro</td></tr>
+      </table>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;string.h&gt;</span>
+
+<span class="ty">char</span> s1[<span class="num">20</span>] = <span class="str">"Olá"</span>;
+<span class="ty">char</span> s2[] = <span class="str">"Mundo"</span>;
+
+<span class="fn">strcat</span>(s1, <span class="str">" "</span>);   <span class="c">// s1 = "Olá "</span>
+<span class="fn">strcat</span>(s1, s2);   <span class="c">// s1 = "Olá Mundo"</span>
+<span class="fn">printf</span>(<span class="str">"%zu\n"</span>, <span class="fn">strlen</span>(s1));  <span class="c">// 9</span>
+
+<span class="kw">if</span> (<span class="fn">strcmp</span>(s1, s2) == <span class="num">0</span>)
+    <span class="fn">printf</span>(<span class="str">"Iguais!\n"</span>);
+</pre>
+      <div class="warn-box"><strong>Buffer overflow:</strong> <code>strcpy</code> e <code>strcat</code> não verificam o tamanho do destino. Se o destino for pequeno demais, você sobrescreve memória adjacente. Prefira <code>strncpy</code> e <code>strncat</code> com limite explícito.</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 5</h3>
+      <div id="quiz-mod5"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 6 ══════════════ -->
+  <section class="module" id="mod6">
+    <div class="mod-title">
+      <div class="num">6</div>
+      <h2>Ponteiros</h2>
+      <span class="badge" id="badge-mod6">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>O que é um ponteiro?</h3>
+      <p>Uma variável que armazena um <strong>endereço de memória</strong>. Em vez de guardar o dado, guarda onde o dado está.</p>
+<pre>
+<span class="ty">int</span> x = <span class="num">42</span>;
+<span class="ty">int</span> *p = &amp;x;    <span class="c">// p aponta para x (&x = "endereço de x")</span>
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, x);    <span class="c">// 42    — o valor</span>
+<span class="fn">printf</span>(<span class="str">"%p\n"</span>, p);    <span class="c">// 0x... — o endereço</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, *p);   <span class="c">// 42    — desreferência: valor no endereço</span>
+
+*p = <span class="num">100</span>;            <span class="c">// modifica x através do ponteiro</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, x);   <span class="c">// 100</span>
+</pre>
+
+      <h3>Ponteiro nulo</h3>
+<pre>
+<span class="ty">int</span> *p = <span class="kw">NULL</span>;    <span class="c">// ponteiro que não aponta pra nada</span>
+
+<span class="kw">if</span> (p != <span class="kw">NULL</span>) {
+    *p = <span class="num">5</span>;       <span class="c">// seguro: verifica antes de usar</span>
+}
+<span class="c">// *NULL → Segmentation Fault imediato (crash)</span>
+</pre>
+
+      <h3>Aritmética de ponteiros</h3>
+<pre>
+<span class="ty">int</span> arr[<span class="num">5</span>] = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+<span class="ty">int</span> *p = arr;    <span class="c">// arr decai para ponteiro pro primeiro elemento</span>
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, *p);       <span class="c">// 10</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, *(p+<span class="num">1</span>));   <span class="c">// 20 (avança sizeof(int) bytes)</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, p[<span class="num">2</span>]);     <span class="c">// 30 (notação de array = aritmética de ponteiros)</span>
+
+p++;  <span class="c">// p agora aponta para arr[1]</span>
+</pre>
+      <div class="info-box"><code>arr[i]</code> é exatamente igual a <code>*(arr + i)</code>. A notação de array é apenas açúcar sintático sobre aritmética de ponteiros.</div>
+
+      <h3>Ponteiro para ponteiro</h3>
+<pre>
+<span class="ty">int</span>   x  = <span class="num">5</span>;
+<span class="ty">int</span>  *p  = &amp;x;   <span class="c">// ponteiro para int</span>
+<span class="ty">int</span> **pp = &amp;p;   <span class="c">// ponteiro para ponteiro para int</span>
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, **pp);  <span class="c">// 5 — dois níveis de desreferência</span>
+</pre>
+
+      <h3>Dangling pointer</h3>
+<pre>
+<span class="ty">int</span> *<span class="fn">criarInt</span>(<span class="ty">void</span>) {
+    <span class="ty">int</span> local = <span class="num">42</span>;
+    <span class="kw">return</span> &amp;local;  <span class="c">// ERRO: retorna endereço de variável local</span>
+                    <span class="c">// local é destruída ao sair da função!</span>
+}
+<span class="c">// p aponta para memória inválida — comportamento indefinido</span>
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 6</h3>
+      <div id="quiz-mod6"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 7 ══════════════ -->
+  <section class="module" id="mod7">
+    <div class="mod-title">
+      <div class="num">7</div>
+      <h2>Structs e Enums</h2>
+      <span class="badge" id="badge-mod7">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>struct — agrupando dados relacionados</h3>
+<pre>
+<span class="kw">struct</span> Ponto {
+    <span class="ty">float</span> x;
+    <span class="ty">float</span> y;
+};
+
+<span class="kw">struct</span> Ponto p1;
+p1.x = <span class="num">3.0f</span>;
+p1.y = <span class="num">4.0f</span>;
+
+<span class="c">// Inicialização direta</span>
+<span class="kw">struct</span> Ponto p2 = {<span class="num">1.0f</span>, <span class="num">2.0f</span>};
+<span class="fn">printf</span>(<span class="str">"(%.1f, %.1f)\n"</span>, p2.x, p2.y);
+</pre>
+
+      <h3>typedef — simplificando o nome</h3>
+<pre>
+<span class="kw">typedef</span> <span class="kw">struct</span> {
+    <span class="ty">char</span>  nome[<span class="num">32</span>];
+    <span class="ty">int</span>   velocidade;
+    <span class="ty">float</span> posicao;
+} Robo;
+
+<span class="c">// Agora usamos "Robo" direto, sem "struct Robo"</span>
+Robo senna;
+senna.velocidade = <span class="num">150</span>;
+senna.posicao    = <span class="num">4000.0f</span>;
+</pre>
+
+      <h3>Ponteiro para struct (operador ->)</h3>
+<pre>
+<span class="ty">void</span> <span class="fn">imprimirRobo</span>(Robo *r) {
+    <span class="fn">printf</span>(<span class="str">"Nome: %s\n"</span>, r-&gt;nome);        <span class="c">// r->campo == (*r).campo</span>
+    <span class="fn">printf</span>(<span class="str">"Vel: %d\n"</span>,  r-&gt;velocidade);
+}
+
+<span class="fn">imprimirRobo</span>(&amp;senna);  <span class="c">// passa endereço para evitar cópia</span>
+</pre>
+      <div class="info-box">Passe structs grandes por ponteiro (<code>&amp;</code>), não por valor. Copiar uma struct grande a cada chamada de função é lento e desperdiça pilha.</div>
+
+      <h3>Structs aninhadas</h3>
+<pre>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="ty">float</span> x, y; } Vec2;
+
+<span class="kw">typedef</span> <span class="kw">struct</span> {
+    Vec2  posicao;
+    Vec2  velocidade;
+    <span class="ty">float</span> angulo;
+} Estado;
+
+Estado e;
+e.posicao.x = <span class="num">10.0f</span>;
+e.posicao.y = <span class="num">0.0f</span>;
+</pre>
+
+      <h3>enum — conjuntos de constantes</h3>
+<pre>
+<span class="kw">typedef</span> <span class="kw">enum</span> {
+    MODO_PARADO = <span class="num">0</span>,
+    MODO_SEGUINDO,    <span class="c">// = 1 (auto-incrementa)</span>
+    MODO_CURVA,       <span class="c">// = 2</span>
+    MODO_RETORNO      <span class="c">// = 3</span>
+} ModoRobo;
+
+ModoRobo atual = MODO_SEGUINDO;
+
+<span class="kw">switch</span> (atual) {
+    <span class="kw">case</span> MODO_PARADO:   <span class="fn">pararMotores</span>(); <span class="kw">break</span>;
+    <span class="kw">case</span> MODO_SEGUINDO: <span class="fn">seguirLinha</span>();  <span class="kw">break</span>;
+    <span class="kw">default</span>: <span class="kw">break</span>;
+}
+</pre>
+      <div class="info-box">Enums tornam o código legível. <code>MODO_SEGUINDO</code> é muito mais claro que o número 1 aparecendo solto no código.</div>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 7</h3>
+      <div id="quiz-mod7"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE 8 ══════════════ -->
+  <section class="module" id="mod8">
+    <div class="mod-title">
+      <div class="num">8</div>
+      <h2>Memória Dinâmica e Arquivos</h2>
+      <span class="badge" id="badge-mod8">Em progresso</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Stack vs Heap</h3>
+      <table>
+        <tr><th></th><th>Stack (Pilha)</th><th>Heap</th></tr>
+        <tr><td>Alocação</td><td>Automática (declaração)</td><td>Manual (malloc)</td></tr>
+        <tr><td>Liberação</td><td>Automática (fim do escopo)</td><td>Manual (free)</td></tr>
+        <tr><td>Tamanho</td><td>Limitado (~8MB típico)</td><td>Limitado pela RAM</td></tr>
+        <tr><td>Velocidade</td><td>Muito rápida</td><td>Mais lenta</td></tr>
+        <tr><td>Uso</td><td>Variáveis locais, params</td><td>Tamanho dinâmico, longo prazo</td></tr>
+      </table>
+
+      <h3>malloc, calloc e free</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="c">// malloc: aloca N bytes (conteúdo indefinido)</span>
+<span class="ty">int</span> *arr = (<span class="ty">int</span>*)<span class="fn">malloc</span>(<span class="num">10</span> * <span class="kw">sizeof</span>(<span class="ty">int</span>));
+
+<span class="kw">if</span> (arr == <span class="kw">NULL</span>) {
+    <span class="fn">fprintf</span>(<span class="kw">stderr</span>, <span class="str">"Erro: sem memória\n"</span>);
+    <span class="kw">return</span> -<span class="num">1</span>;
+}
+
+arr[<span class="num">0</span>] = <span class="num">42</span>;
+arr[<span class="num">9</span>] = <span class="num">99</span>;
+
+<span class="fn">free</span>(arr);    <span class="c">// SEMPRE libere a memória alocada!</span>
+arr = <span class="kw">NULL</span>;  <span class="c">// boa prática: evita dangling pointer</span>
+
+<span class="c">// calloc: aloca e inicializa com zero</span>
+<span class="ty">float</span> *buf = (<span class="ty">float</span>*)<span class="fn">calloc</span>(<span class="num">100</span>, <span class="kw">sizeof</span>(<span class="ty">float</span>));
+
+<span class="c">// realloc: redimensiona</span>
+arr = (<span class="ty">int</span>*)<span class="fn">realloc</span>(arr, <span class="num">20</span> * <span class="kw">sizeof</span>(<span class="ty">int</span>));
+</pre>
+      <div class="warn-box"><strong>Memory leak:</strong> Não chamar <code>free</code> para memória alocada = memory leak. Em programas longos, isso esgota a RAM. Em sistemas embarcados com pouca RAM, um único leak pode travar o sistema.</div>
+
+      <h3>Arquivos — FILE*</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="ty">FILE</span> *fp = <span class="fn">fopen</span>(<span class="str">"dados.txt"</span>, <span class="str">"w"</span>);  <span class="c">// abre para escrita</span>
+
+<span class="kw">if</span> (fp == <span class="kw">NULL</span>) {
+    <span class="fn">perror</span>(<span class="str">"Erro ao abrir arquivo"</span>);
+    <span class="kw">return</span> -<span class="num">1</span>;
+}
+
+<span class="fn">fprintf</span>(fp, <span class="str">"Posicao: %.2f\n"</span>, <span class="num">4000.5f</span>);
+<span class="fn">fprintf</span>(fp, <span class="str">"Velocidade: %d\n"</span>, <span class="num">150</span>);
+
+<span class="fn">fclose</span>(fp);  <span class="c">// SEMPRE feche o arquivo!</span>
+</pre>
+
+      <h4>Modos de abertura</h4>
+      <table>
+        <tr><th>Modo</th><th>Significado</th></tr>
+        <tr><td><code>"r"</code></td><td>Leitura (arquivo deve existir)</td></tr>
+        <tr><td><code>"w"</code></td><td>Escrita (cria ou sobrescreve)</td></tr>
+        <tr><td><code>"a"</code></td><td>Append (acrescenta ao final)</td></tr>
+        <tr><td><code>"r+"</code></td><td>Leitura e escrita</td></tr>
+        <tr><td><code>"rb"</code></td><td>Leitura binária</td></tr>
+      </table>
+
+      <h4>Leitura de arquivo</h4>
+<pre>
+<span class="ty">FILE</span> *fp = <span class="fn">fopen</span>(<span class="str">"dados.txt"</span>, <span class="str">"r"</span>);
+<span class="ty">char</span> linha[<span class="num">128</span>];
+
+<span class="kw">while</span> (<span class="fn">fgets</span>(linha, <span class="kw">sizeof</span>(linha), fp) != <span class="kw">NULL</span>) {
+    <span class="fn">printf</span>(<span class="str">"%s"</span>, linha);  <span class="c">// fgets já inclui '\n'</span>
+}
+<span class="fn">fclose</span>(fp);
+</pre>
+
+    </div>
+    <div class="quiz-section">
+      <h3>Quiz — Módulo 8</h3>
+      <div id="quiz-mod8"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ── Quiz data ──
+const QUIZZES = {
+  mod1: [
+    { q: 'Qual a saída de: printf("%d", 10 / 3) em C?',
+      opts: ['3.33','3','4','Erro de compilação'], correct: 1,
+      explain: 'Divisão entre dois inteiros em C trunca o resultado. 10/3 = 3 (resto 1 é descartado).' },
+    { q: 'Para que serve o & no scanf("%d", &n)?',
+      opts: ['Operador AND lógico','Passa o endereço de n para scanf poder escrever nela','Lê um número hexadecimal','Formata a saída'], correct: 1,
+      explain: 'scanf precisa do endereço da variável para escrever o valor lido diretamente na posição de memória correta.' },
+    { q: 'Qual tipo garante exatamente 8 bits sem sinal em qualquer plataforma?',
+      opts: ['unsigned char','uint8_t','byte','short'], correct: 1,
+      explain: 'uint8_t (de stdint.h) garante exatamente 8 bits sem sinal. unsigned char tem 8 bits na maioria dos sistemas, mas uint8_t é a garantia formal.' },
+    { q: 'Qual a diferença entre const int X=5 e #define X 5?',
+      opts: ['Nenhuma diferença prática','const tem tipo, escopo e aparece no debugger; #define é substituição textual sem tipo','#define é mais seguro','const não pode ser usada em arrays'], correct: 1,
+      explain: 'const cria uma variável real com tipo e escopo, enquanto #define é uma diretiva do pré-processador que faz substituição textual sem verificação de tipo.' },
+    { q: 'Qual etapa do processo de compilação junta os arquivos .o com as bibliotecas?',
+      opts: ['Pré-processador','Compilador','Montador (assembler)','Linker'], correct: 3,
+      explain: 'O linker (ligador) é responsável por juntar os arquivos objeto (.o) gerados pelo montador com as bibliotecas necessárias para gerar o executável final.' }
+  ],
+  mod2: [
+    { q: 'Qual o resultado de 7 % 3 em C?',
+      opts: ['2','1','0','2.33'], correct: 1,
+      explain: '% é o operador de módulo (resto da divisão inteira). 7 = 2*3 + 1, portanto o resto é 1.' },
+    { q: 'O que faz o operador |= em: reg |= (1 << 3) ?',
+      opts: ['Limpa o bit 3 de reg','Seta o bit 3 de reg sem alterar os outros','Inverte o bit 3 de reg','Divide reg por 3'], correct: 1,
+      explain: '(1 << 3) = 0b00001000. OR com qualquer bit 0 não altera; OR com 1 seta o bit. Portanto |= (1<<3) seta apenas o bit 3.' },
+    { q: 'Qual a diferença entre i++ e ++i ?',
+      opts: ['Nenhuma em todos os contextos','i++ usa o valor atual e depois incrementa; ++i incrementa primeiro e depois usa','++i é mais rápido sempre','i++ retorna void'], correct: 1,
+      explain: 'Em expressões: i++ retorna o valor antes do incremento (pós-fixo), ++i incrementa e retorna o novo valor (pré-fixo). Em declarações isoladas (linha sozinha), são equivalentes.' },
+    { q: 'O que acontece com: float r = 5 / 2 em C?',
+      opts: ['r = 2.5','r = 2.0 (divisão inteira primeiro, depois conversão)','Erro de compilação','r = 3.0'], correct: 1,
+      explain: '5 e 2 são inteiros, então 5/2 = 2 (divisão inteira). Depois o 2 é convertido para float 2.0. Para obter 2.5 use: (float)5/2 ou 5.0f/2.' }
+  ],
+  mod3: [
+    { q: 'O que acontece se esquecer o "break" num case de switch?',
+      opts: ['Erro de compilação','O código "cai" no case seguinte (fall-through)','O switch termina automaticamente','Executa o default'], correct: 1,
+      explain: 'Sem break, a execução continua para o próximo case (fall-through). Às vezes é intencional, mas quase sempre é um bug difícil de encontrar.' },
+    { q: 'Qual loop garante executar o corpo pelo menos uma vez?',
+      opts: ['for','while','do-while','loop infinito com break'], correct: 2,
+      explain: 'No do-while, o corpo é executado primeiro e a condição é testada depois. Portanto, o corpo sempre executa pelo menos uma vez, mesmo se a condição for false desde o início.' },
+    { q: 'Qual a diferença entre break e continue num loop?',
+      opts: ['São sinônimos','break sai do loop; continue pula para a próxima iteração','continue sai do loop; break pula a iteração','break reinicia o loop'], correct: 1,
+      explain: 'break encerra o loop completamente. continue interrompe a iteração atual e vai para a próxima verificação de condição (pulando o restante do corpo).' },
+    { q: 'Quantas vezes o printf executa: for(int i=0; i<5; i++) if(i%2==0) printf("x");',
+      opts: ['5','3','2','4'], correct: 1,
+      explain: 'i assume valores 0,1,2,3,4. i%2==0 é verdadeiro para 0,2,4 → 3 execuções de printf.' }
+  ],
+  mod4: [
+    { q: 'O que é um protótipo de função em C?',
+      opts: ['A primeira chamada da função','A declaração da assinatura da função antes de sua definição completa','Um tipo especial de macro','Uma função recursiva'], correct: 1,
+      explain: 'O protótipo informa ao compilador o tipo de retorno e os tipos dos parâmetros antes que a definição completa apareça. Permite chamar funções definidas mais abaixo no arquivo.' },
+    { q: 'Uma variável static dentro de uma função:',
+      opts: ['É destruída ao fim de cada chamada','Mantém seu valor entre chamadas sucessivas da função','É global e visível em todo o programa','Não pode ser modificada'], correct: 1,
+      explain: 'Variáveis static locais são alocadas na memória de dados estáticos (não na pilha) e mantêm seu valor entre chamadas. A inicialização ocorre apenas na primeira chamada.' },
+    { q: 'Por que passar structs grandes como ponteiro e não por valor?',
+      opts: ['Não faz diferença','Evita copiar todos os campos na pilha a cada chamada, economizando memória e tempo','Ponteiros são mais precisos','Structs não podem ser passadas por valor'], correct: 1,
+      explain: 'Passar por valor copia todos os campos da struct na pilha. Para structs grandes, isso é lento e desperdiça espaço de pilha. Passar um ponteiro copia apenas 4 ou 8 bytes (endereço).' },
+    { q: 'O que é comportamento indefinido em recursão sem caso base?',
+      opts: ['Retorna 0 automaticamente','Provoca stack overflow: a pilha cresce indefinidamente até estourar','O compilador adiciona um caso base','Entra em loop infinito no heap'], correct: 1,
+      explain: 'Sem caso base, a função chama a si mesma infinitamente. Cada chamada aloca um frame na pilha. Eventualmente a pilha fica sem espaço: stack overflow. Em sistemas embarcados, a pilha pode ser de apenas alguns KB.' }
+  ],
+  mod5: [
+    { q: 'Qual o índice do último elemento de int arr[8]?',
+      opts: ['8','7','9','-1'], correct: 1,
+      explain: 'Arrays em C têm índices de 0 a N-1. Para arr[8], os índices válidos são 0 a 7. Acessar arr[8] é out-of-bounds.' },
+    { q: 'Por que strings em C são terminadas com \\0?',
+      opts: ['Convenção arbitrária','As funções de string (printf %s, strlen, etc.) usam \\0 para saber onde a string termina','\\0 indica início da string','Por compatibilidade com Java'], correct: 1,
+      explain: 'C não armazena o comprimento da string. Funções como printf e strlen percorrem o array byte a byte até encontrar \\0 (valor 0), que marca o fim.' },
+    { q: 'O que strcmp(a, b) retorna se as strings são iguais?',
+      opts: ['1','true','-1','0'], correct: 3,
+      explain: 'strcmp retorna 0 se as strings são idênticas, valor negativo se a < b lexicograficamente, positivo se a > b. Portanto: if (!strcmp(a,b)) testa igualdade.' },
+    { q: 'Qual o perigo de strcpy(dst, src) quando dst é menor que src?',
+      opts: ['Compila mas retorna erro em runtime','Buffer overflow: sobrescreve memória além de dst','Trunca automaticamente','Não existe perigo, strcpy é seguro'], correct: 1,
+      explain: 'strcpy não verifica o tamanho do destino. Se src for maior que dst, os bytes excedentes sobrescrevem memória adjacente na pilha. Use strncpy(dst, src, sizeof(dst)-1) para segurança.' }
+  ],
+  mod6: [
+    { q: 'O que faz o operador * quando usado com um ponteiro?',
+      opts: ['Multiplica o ponteiro','Desreferencia: acessa o valor no endereço apontado','Declara o ponteiro','Calcula o tamanho'], correct: 1,
+      explain: 'O operador * aplicado a um ponteiro (desreferência) retorna o valor armazenado no endereço que o ponteiro contém. Ex: se p aponta para x=42, então *p == 42.' },
+    { q: 'O que significa int *p = NULL?',
+      opts: ['p aponta para o endereço 0 da RAM real','p é um ponteiro que não aponta para nenhum objeto válido','p vale zero','p é inválido como variável'], correct: 1,
+      explain: 'NULL é uma constante (geralmente 0 ou (void*)0) que indica que o ponteiro não aponta para nenhum local de memória válido. Sempre inicialize ponteiros com NULL quando não tiver endereço para dar.' },
+    { q: 'Se int arr[] = {1,2,3} e int *p = arr, o que é *(p+1)?',
+      opts: ['2','1','O endereço do segundo elemento','Erro'], correct: 0,
+      explain: 'p aponta para arr[0]. p+1 avança sizeof(int) bytes, apontando para arr[1]. *(p+1) desreferencia esse endereço, retornando 2.' },
+    { q: 'O que é um dangling pointer?',
+      opts: ['Ponteiro não inicializado','Ponteiro que aponta para memória que já foi liberada ou saiu de escopo','Ponteiro para NULL','Ponteiro para ponteiro'], correct: 1,
+      explain: 'Um dangling pointer aponta para memória inválida: pode ser memória liberada com free(), uma variável local que saiu de escopo, ou memória realocada. Acessá-lo causa comportamento indefinido.' }
+  ],
+  mod7: [
+    { q: 'Qual a diferença entre . e -> para acessar campos de struct?',
+      opts: ['São sinônimos','Use . para variável struct; use -> para ponteiro para struct','Use -> para variável; . para ponteiro','-> é para C++, . é para C'], correct: 1,
+      explain: 'r.campo acessa o campo de uma variável struct diretamente. p->campo acessa o campo através de um ponteiro (equivale a (*p).campo). Ponteiros para struct são muito comuns em C para evitar cópias.' },
+    { q: 'Por que usar typedef com struct?',
+      opts: ['Torna o programa mais rápido','Permite usar o nome do tipo sem repetir a palavra-chave struct toda vez','É obrigatório em C99','Permite herança'], correct: 1,
+      explain: 'Sem typedef, cada declaração seria "struct Robo r;". Com typedef, basta "Robo r;". Melhora legibilidade e reduz verbosidade.' },
+    { q: 'O que é enum em C?',
+      opts: ['Um tipo de ponteiro especial','Um conjunto nomeado de constantes inteiras','Uma struct sem campos','Uma função matemática'], correct: 1,
+      explain: 'enum define um tipo que pode assumir um conjunto fixo de valores nomeados (constantes inteiras). Melhora legibilidade: MODO_SEGUINDO é mais claro que o número 1 solto no código.' },
+    { q: 'Para uma struct com 100 campos float, qual forma de passagem para função é mais eficiente?',
+      opts: ['Por valor (cópia)','Por ponteiro (endereço da struct)','Ambas são equivalentes','Depende do compilador'], correct: 1,
+      explain: 'Passar por valor copia todos os 100 campos (400 bytes) na pilha. Passar um ponteiro copia apenas 4 ou 8 bytes (o endereço). Para structs grandes, sempre passe por ponteiro.' }
+  ],
+  mod8: [
+    { q: 'Qual a diferença entre malloc e calloc?',
+      opts: ['Nenhuma','calloc inicializa a memória com zero; malloc não inicializa','malloc é para arrays; calloc para tipos simples','calloc é mais lento mas mais seguro sempre'], correct: 1,
+      explain: 'malloc aloca N bytes com conteúdo indefinido (lixo de memória). calloc(n, size) aloca n*size bytes e inicializa todos com zero. Para buffers que precisam começar zerados, prefira calloc.' },
+    { q: 'O que acontece se você chamar free() duas vezes no mesmo ponteiro?',
+      opts: ['Nada, é seguro','Double-free: comportamento indefinido, pode corromper o heap','O sistema ignora a segunda chamada','Lança uma exceção'], correct: 1,
+      explain: 'Double-free é um bug sério: você está liberando memória que já foi devolvida ao gerenciador. Pode corromper as estruturas internas do heap e é uma vulnerabilidade de segurança. Após free, sempre faça ptr = NULL.' },
+    { q: 'Para abrir um arquivo para escrita sem apagar o conteúdo existente, qual modo usar em fopen?',
+      opts: ['"w"','"a"','"r"','"r+"'], correct: 1,
+      explain: '"w" cria ou sobrescreve o arquivo do zero. "a" (append) abre o arquivo e posiciona o cursor no final, preservando o conteúdo existente e adicionando ao final.' },
+    { q: 'Qual a consequência de não chamar fclose() depois de fopen()?',
+      opts: ['Nenhuma no final do programa','Dados em buffer podem não ser escritos no disco; file handle fica aberto; recursos vazam','O arquivo é corrompido automaticamente','fclose é opcional em C moderno'], correct: 1,
+      explain: 'fclose libera o buffer de escrita (flush), fecha o file descriptor e libera recursos do sistema operacional. Sem fclose, dados em buffer podem não chegar ao disco (partial write) e file handles limitados do OS ficam ocupados.' }
+  ]
+};
+
+const answered = {};
+const TOTAL = 8;
+
+function renderQuiz(modId) {
+  const container = document.getElementById('quiz-' + modId);
+  if (!container) return;
+  const qs = QUIZZES[modId];
+  answered[modId] = new Array(qs.length).fill(false);
+  let html = '';
+  qs.forEach((q, qi) => {
+    html += `<div class="quiz-item" id="${modId}-q${qi}">
+      <div class="question">${qi + 1}. ${q.q}</div>
+      <div class="options">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<button class="opt-btn" onclick="verify('${modId}',${qi},${oi},${q.correct})">${opt}</button>`;
+    });
+    html += `</div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function verify(modId, qi, chosen, correct) {
+  const item = document.getElementById(`${modId}-q${qi}`);
+  const btns = item.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[correct].classList.add('correct');
+  if (chosen !== correct) btns[chosen].classList.add('wrong');
+  const exp = document.createElement('div');
+  exp.className = 'explanation';
+  exp.textContent = QUIZZES[modId][qi].explain;
+  item.appendChild(exp);
+  answered[modId][qi] = true;
+  checkComplete(modId);
+}
+
+function checkComplete(modId) {
+  if (answered[modId].every(Boolean)) {
+    const qs = document.getElementById('quiz-' + modId);
+    const msg = document.createElement('div');
+    msg.className = 'quiz-done-msg';
+    msg.textContent = '✓ Módulo concluído!';
+    qs.appendChild(msg);
+    localStorage.setItem('tc_c_' + modId, 'done');
+    updateUI();
+  }
+}
+
+function updateUI() {
+  let done = 0;
+  for (let i = 1; i <= TOTAL; i++) {
+    const key = 'mod' + i;
+    const isDone = localStorage.getItem('tc_c_' + key) === 'done';
+    if (isDone) done++;
+    const badge = document.getElementById('badge-' + key);
+    const link  = document.getElementById('link-' + key);
+    if (badge) { badge.textContent = isDone ? 'Concluído ✓' : 'Em progresso'; badge.className = isDone ? 'badge done-badge' : 'badge'; }
+    if (link)  { link.className = isDone ? 'mod-link done' : 'mod-link'; }
+  }
+  document.getElementById('sb-prog').style.width = (done / TOTAL * 100) + '%';
+  document.getElementById('sb-lbl').textContent = done + ' / ' + TOTAL + ' concluídos';
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// Active link on scroll
+const sections = document.querySelectorAll('.module');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.mod-link').forEach(l => l.classList.remove('active'));
+      const link = document.getElementById('link-' + e.target.id);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+// Init
+for (let i = 1; i <= TOTAL; i++) renderQuiz('mod' + i);
+updateUI();
+</script>
+</body>
+</html>
