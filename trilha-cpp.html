@@ -144,7 +144,7 @@
   <div class="sidebar-header">
     <a href="index.html">← Voltar ao início</a>
     <h3>Trilha C++</h3>
-    <p>Linguagem C++ · 5 módulos</p>
+    <p>Linguagem C++ · 5 módulos · 32 questões</p>
   </div>
   <div class="sidebar-prog">
     <div class="sidebar-prog-bar"><div class="sidebar-prog-fill" id="sb-prog" style="width:0%"></div></div>
@@ -287,6 +287,45 @@ PID <span class="fn">controlador</span>(<span class="num">2.5f</span>, <span cla
 };
 </pre>
 
+
+      <h3>Membros static</h3>
+      <p>Um membro <code>static</code> pertence à <em>classe</em>, não a cada instância. É compartilhado por todos os objetos da classe.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">Motor</span> {
+<span class="kw">private</span>:
+    <span class="kw">static</span> <span class="ty">int</span> totalMotores;  <span class="c">// UMA cópia para TODOS os objetos</span>
+    <span class="ty">int</span> id;
+
+<span class="kw">public</span>:
+    <span class="fn">Motor</span>()  { id = ++totalMotores; }
+    ~<span class="fn">Motor</span>() { --totalMotores; }
+
+    <span class="kw">static</span> <span class="ty">int</span> <span class="fn">getTotal</span>() { <span class="kw">return</span> totalMotores; }  <span class="c">// static: sem ponteiro "this"</span>
+};
+
+<span class="c">// Obrigatório: inicializar o membro static FORA da classe (no .cpp)</span>
+<span class="ty">int</span> Motor::totalMotores = <span class="num">0</span>;
+
+Motor a, b, c;
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, Motor::<span class="fn">getTotal</span>());  <span class="c">// 3 — acesso via ClassName::</span>
+</pre>
+      <div class="cpp-box">Métodos <code>static</code> não recebem ponteiro <code>this</code> e não podem acessar membros não-<code>static</code>. São ideais para contadores de instâncias, configurações globais da classe e funções fábrica.</div>
+
+      <h3>Chamadas em cascata com return *this</h3>
+      <p>Retornar <code>*this</code> por referência permite encadear chamadas de método numa única expressão — padrão <em>method chaining</em>.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">PID</span> {
+    <span class="ty">float</span> kP{<span class="num">1.0f</span>}, kD{<span class="num">0.0f</span>}, erro{<span class="num">0.0f</span>};
+<span class="kw">public</span>:
+    PID&amp; <span class="fn">setKP</span>(<span class="ty">float</span> p) { kP = p; <span class="kw">return</span> *<span class="kw">this</span>; }   <span class="c">// retorna o próprio objeto</span>
+    PID&amp; <span class="fn">setKD</span>(<span class="ty">float</span> d) { kD = d; <span class="kw">return</span> *<span class="kw">this</span>; }
+    PID&amp; <span class="fn">resetar</span>()     { erro = <span class="num">0</span>; <span class="kw">return</span> *<span class="kw">this</span>; }
+};
+
+PID pid;
+pid.<span class="fn">setKP</span>(<span class="num">2.5f</span>).<span class="fn">setKD</span>(<span class="num">0.8f</span>).<span class="fn">resetar</span>();  <span class="c">// legível e compacto</span>
+</pre>
+
     </div>
     <div class="quiz-section">
       <h3>Quiz — Módulo 1</h3>
@@ -378,6 +417,47 @@ robo-&gt;<span class="fn">atualizar</span>();  <span class="c">// chama Seguidor
 <span class="ty">void</span> <span class="fn">atualizar</span>() <span class="kw">final</span>    {}  <span class="c">// nenhuma subclasse pode sobrescrever</span>
 <span class="kw">class</span> <span class="ty">Fechado</span> <span class="kw">final</span> : <span class="kw">public</span> Base {}  <span class="c">// ninguém pode herdar de Fechado</span>
 </pre>
+
+      <h3>Tipos de herança: public, protected, private</h3>
+      <p>O especificador de herança controla como os membros da base ficam visíveis na classe derivada:</p>
+      <table>
+        <tr><th>Tipo de herança</th><th>public da base vira...</th><th>protected da base vira...</th></tr>
+        <tr><td><code>public</code></td><td>public</td><td>protected</td></tr>
+        <tr><td><code>protected</code></td><td>protected</td><td>protected</td></tr>
+        <tr><td><code>private</code></td><td>private</td><td>private</td></tr>
+      </table>
+      <div class="info-box">Use sempre <code>public</code> para modelar relacionamento <em>é-um</em> (is-a): <code>SeguidorLinha</code> é um <code>Robo</code>. Com herança <code>private</code> ou <code>protected</code>, o objeto derivado não pode ser tratado como a base — o polimorfismo não funciona.</div>
+
+      <h3>Como o dispatch virtual funciona: vtable</h3>
+      <p>Toda classe com funções <code>virtual</code> recebe uma <strong>tabela de ponteiros de função</strong> (vtable). Cada objeto guarda um ponteiro oculto para a vtable de sua classe real:</p>
+<pre>
+<span class="c">// Internamente o compilador constrói algo equivalente a:</span>
+<span class="c">//  Robo::vtable          → { &amp;Robo::atualizar }</span>
+<span class="c">//  SeguidorLinha::vtable → { &amp;SeguidorLinha::atualizar }</span>
+
+Robo* r = <span class="kw">new</span> SeguidorLinha(<span class="num">2.5f</span>);
+
+<span class="c">// r->atualizar() executa em 3 passos em runtime:</span>
+<span class="c">// 1. Segue o ponteiro r → objeto SeguidorLinha na heap</span>
+<span class="c">// 2. Lê o ponteiro vtable do objeto → SeguidorLinha::vtable</span>
+<span class="c">// 3. Chama a função apontada → SeguidorLinha::atualizar!</span>
+r-&gt;<span class="fn">atualizar</span>();  <span class="c">// não Robo::atualizar — o tipo real decide</span>
+</pre>
+      <div class="cpp-box"><strong>Overhead da vtable:</strong> cada objeto com métodos <code>virtual</code> ganha +1 ponteiro oculto (4 ou 8 bytes). Cada chamada virtual passa por duas indireções de ponteiro extras. Para robótica com centenas de objetos, este custo é desprezível.</div>
+
+      <h3>dynamic_cast — downcast seguro em runtime</h3>
+<pre>
+<span class="ty">void</span> <span class="fn">processarRobo</span>(Robo* r) {
+    <span class="c">// dynamic_cast testa em runtime se r aponta para SeguidorLinha</span>
+    <span class="c">// retorna nullptr se NÃO for — nunca crashea como static_cast</span>
+    SeguidorLinha* s = <span class="kw">dynamic_cast</span>&lt;SeguidorLinha*&gt;(r);
+
+    <span class="kw">if</span> (s != <span class="kw">nullptr</span>) {
+        s-&gt;<span class="fn">ajustarKP</span>(<span class="num">3.0f</span>);  <span class="c">// seguro: sabemos que é SeguidorLinha</span>
+    }
+}
+</pre>
+      <div class="warn-box"><code>dynamic_cast</code> exige que a classe base tenha pelo menos uma função <code>virtual</code>. Use com moderação: muitos downcasts são sinal de hierarquia de herança mal projetada — prefira polimorfismo puro com métodos virtuais.</div>
 
     </div>
     <div class="quiz-section">
@@ -485,6 +565,67 @@ params[<span class="str">"kD"</span>] = <span class="num">0.8f</span>;
 }
 </pre>
 
+      <h3>std::array — array de tamanho fixo e seguro</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;array&gt;</span>
+
+<span class="c">// std::array&lt;T,N&gt;: fixo em compile-time, fica na stack, sabe seu tamanho</span>
+std::array&lt;<span class="ty">uint16_t</span>, <span class="num">9</span>&gt; sensores = {<span class="num">0</span>};
+
+sensores[<span class="num">4</span>] = <span class="num">3800</span>;
+<span class="fn">printf</span>(<span class="str">"%zu\n"</span>, sensores.<span class="fn">size</span>());   <span class="c">// 9 — ao contrário de int arr[9]!</span>
+
+<span class="c">// Range-for e algoritmos STL funcionam normalmente</span>
+<span class="kw">for</span> (<span class="kw">auto</span> v : sensores) <span class="fn">printf</span>(<span class="str">"%u "</span>, v);
+</pre>
+      <div class="cpp-box">Prefira <code>std::array</code> a arrays C quando o tamanho é fixo. Sabe seu tamanho, funciona com todos os algoritmos STL e nunca decai silenciosamente para ponteiro ao ser passado para funções.</div>
+
+      <h3>Algoritmos STL — &lt;algorithm&gt;</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;algorithm&gt;</span>
+
+std::vector&lt;<span class="ty">int</span>&gt; v = {<span class="num">5</span>, <span class="num">1</span>, <span class="num">4</span>, <span class="num">2</span>, <span class="num">3</span>};
+
+<span class="c">// sort — ordenar crescente / decrescente</span>
+std::<span class="fn">sort</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>());                        <span class="c">// {1,2,3,4,5}</span>
+std::<span class="fn">sort</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), std::greater&lt;<span class="ty">int</span>&gt;());    <span class="c">// {5,4,3,2,1}</span>
+
+<span class="c">// find — buscar primeiro elemento igual a um valor</span>
+<span class="kw">auto</span> it = std::<span class="fn">find</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), <span class="num">3</span>);
+<span class="kw">if</span> (it != v.<span class="fn">end</span>()) <span class="fn">printf</span>(<span class="str">"achou: %d\n"</span>, *it);
+
+<span class="c">// fill — preencher todos com um valor</span>
+std::<span class="fn">fill</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), <span class="num">0</span>);                      <span class="c">// {0,0,0,0,0}</span>
+
+<span class="c">// count_if — contar elementos que satisfazem condição (lambda)</span>
+<span class="ty">int</span> n = std::<span class="fn">count_if</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(),
+    [](<span class="ty">int</span> x){ <span class="kw">return</span> x &gt; <span class="num">3000</span>; });
+
+<span class="c">// transform — aplicar função a cada elemento, gravar no destino</span>
+std::<span class="fn">transform</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), v.<span class="fn">begin</span>(),
+    [](<span class="ty">int</span> x){ <span class="kw">return</span> x * <span class="num">2</span>; });                         <span class="c">// dobra in-place</span>
+</pre>
+
+      <h3>std::unordered_map — dicionário O(1)</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;unordered_map&gt;</span>
+
+<span class="c">// std::map: ordenado por chave — O(log n). unordered_map: hash — O(1) médio</span>
+std::unordered_map&lt;std::string, <span class="ty">float</span>&gt; config;
+config[<span class="str">"kP"</span>] = <span class="num">2.5f</span>;
+config[<span class="str">"kD"</span>] = <span class="num">0.8f</span>;
+
+<span class="ty">float</span> kp = config[<span class="str">"kP"</span>];               <span class="c">// O(1) médio</span>
+<span class="kw">bool</span> existe = config.<span class="fn">count</span>(<span class="str">"kI"</span>) &gt; <span class="num">0</span>;  <span class="c">// verifica sem inserir</span>
+</pre>
+      <table>
+        <tr><th></th><th>std::map</th><th>std::unordered_map</th></tr>
+        <tr><td>Ordenação</td><td>Sim (por chave)</td><td>Não</td></tr>
+        <tr><td>Acesso/Insert</td><td>O(log n)</td><td>O(1) médio</td></tr>
+        <tr><td>Implementação</td><td>Árvore balanceada</td><td>Hash table</td></tr>
+        <tr><td>Quando usar</td><td>Precisa de iteração ordenada</td><td>Velocidade máxima</td></tr>
+      </table>
+
       <h3>Iteradores</h3>
 <pre>
 std::vector&lt;<span class="ty">int</span>&gt; v = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>};
@@ -588,6 +729,61 @@ arr[<span class="num">0</span>] = <span class="num">42</span>;
     <span class="kw">if</span> (erro) <span class="kw">return</span>;  <span class="c">// fclose chamado mesmo aqui!</span>
 }  <span class="c">// fclose chamado aqui também</span>
 </pre>
+
+      <h3>Sobrecarga de operadores</h3>
+      <p>C++ permite redefinir o comportamento de operadores para tipos definidos pelo usuário, tornando o código mais natural.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">Vetor2D</span> {
+<span class="kw">public</span>:
+    <span class="ty">float</span> x, y;
+    <span class="fn">Vetor2D</span>(<span class="ty">float</span> x, <span class="ty">float</span> y) : x(x), y(y) {}
+
+    <span class="c">// operator+ como membro: *this é o operando esquerdo</span>
+    Vetor2D <span class="kw">operator</span>+(<span class="kw">const</span> Vetor2D&amp; outro) <span class="kw">const</span> {
+        <span class="kw">return</span> Vetor2D(x + outro.x, y + outro.y);
+    }
+
+    <span class="c">// operator== para comparação</span>
+    <span class="ty">bool</span> <span class="kw">operator</span>==(<span class="kw">const</span> Vetor2D&amp; outro) <span class="kw">const</span> {
+        <span class="kw">return</span> x == outro.x &amp;&amp; y == outro.y;
+    }
+
+    <span class="c">// operator&lt;&lt; deve ser função global (friend): cout fica à esquerda</span>
+    <span class="kw">friend</span> std::ostream&amp; <span class="kw">operator</span>&lt;&lt;(std::ostream&amp; out, <span class="kw">const</span> Vetor2D&amp; v) {
+        <span class="kw">return</span> out &lt;&lt; <span class="str">"("</span> &lt;&lt; v.x &lt;&lt; <span class="str">", "</span> &lt;&lt; v.y &lt;&lt; <span class="str">")"</span>;
+    }
+};
+
+Vetor2D a{<span class="num">1.0f</span>, <span class="num">2.0f</span>}, b{<span class="num">3.0f</span>, <span class="num">4.0f</span>};
+Vetor2D c = a + b;            <span class="c">// chama operator+  → (4.0, 6.0)</span>
+std::cout &lt;&lt; c &lt;&lt; std::endl;  <span class="c">// chama operator&lt;&lt; → (4.0, 6.0)</span>
+</pre>
+      <div class="warn-box">Os operadores <code>.</code>, <code>.*</code>, <code>::</code> e <code>?:</code> não podem ser sobrecarregados. Sobrecarregar <code>==</code> não sobrecarrega <code>!=</code> automaticamente — implemente ambos explicitamente.</div>
+
+      <h3>Construtor de cópia</h3>
+      <p>Chamado automaticamente ao passar objeto por valor, retornar por valor ou inicializar a partir de outro objeto.</p>
+<pre>
+<span class="kw">class</span> <span class="ty">Buffer</span> {
+    <span class="ty">int</span>* dados;
+    <span class="ty">int</span>  tam;
+<span class="kw">public</span>:
+    <span class="fn">Buffer</span>(<span class="ty">int</span> n) : tam(n), dados(<span class="kw">new</span> <span class="ty">int</span>[n]) {}  <span class="c">// aloca heap</span>
+
+    <span class="c">// Cópia padrão (rasa): PROBLEMA — dois objetos apontam para a mesma memória!</span>
+    <span class="c">// Buffer(const Buffer&amp;) = default;  ← NÃO fazer quando há ponteiros</span>
+
+    <span class="c">// Cópia profunda: cada objeto tem sua própria cópia dos dados</span>
+    <span class="fn">Buffer</span>(<span class="kw">const</span> Buffer&amp; outro) : tam(outro.tam), dados(<span class="kw">new</span> <span class="ty">int</span>[outro.tam]) {
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; tam; i++) dados[i] = outro.dados[i];
+    }
+
+    ~<span class="fn">Buffer</span>() { <span class="kw">delete</span>[] dados; }
+};
+
+Buffer a(<span class="num">100</span>);
+Buffer b = a;  <span class="c">// chama construtor de cópia — deep copy</span>
+</pre>
+      <div class="info-box"><strong>Regra dos Três:</strong> se você escrever um destrutor personalizado, provavelmente precisará também de um construtor de cópia e de um <code>operator=</code> personalizados. Os três trabalham em trio para garantir semântica correta com recursos alocados.</div>
 
       <h3>Smart pointers (C++11)</h3>
 <pre>
@@ -724,6 +920,56 @@ std::map&lt;std::string, <span class="ty">int</span>&gt; mapa = {{<span class="s
 }
 </pre>
 
+      <h3>Move semantics — rvalue references (C++11)</h3>
+      <p>Move transfere a propriedade dos recursos de um objeto sem copiar dados — O(1) em vez de O(n).</p>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;utility&gt;</span>
+
+std::vector&lt;<span class="ty">int</span>&gt; origem = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>};
+
+<span class="c">// Cópia: aloca nova memória, copia todos os dados — O(n)</span>
+std::vector&lt;<span class="ty">int</span>&gt; copia = origem;
+
+<span class="c">// Move: "rouba" o buffer interno de origem, que fica vazio — O(1)</span>
+std::vector&lt;<span class="ty">int</span>&gt; movido = std::<span class="fn">move</span>(origem);
+<span class="c">// origem agora está em estado válido mas vazio (não use depois!)</span>
+
+<span class="c">// Construtor de movimento: parâmetro T&amp;&amp; (rvalue reference)</span>
+<span class="kw">class</span> <span class="ty">Buffer</span> {
+    <span class="ty">int</span>* dados; <span class="ty">int</span> tam;
+<span class="kw">public</span>:
+    Buffer(<span class="ty">Buffer</span>&amp;&amp; outro) <span class="kw">noexcept</span>    <span class="c">// &amp;&amp; = rvalue reference</span>
+        : dados(outro.dados), tam(outro.tam) {
+        outro.dados = <span class="kw">nullptr</span>;  <span class="c">// invalida a origem — evita double-free</span>
+        outro.tam   = <span class="num">0</span>;
+    }
+};
+</pre>
+      <div class="cpp-box">Containers da STL (<code>vector</code>, <code>string</code>, <code>map</code>) já implementam move semantics. Ao retornar um <code>vector</code> de uma função, o compilador usa <strong>RVO</strong> ou move — nenhuma cópia extra ocorre. Use <code>std::move</code> explicitamente apenas quando necessário passar propriedade de objetos.</div>
+
+      <h3>std::optional — valor que pode não existir (C++17)</h3>
+<pre>
+<span class="pp">#include</span> <span class="str">&lt;optional&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;array&gt;</span>
+
+<span class="c">// Retorna o índice do sensor mais escuro, ou "nada" se nenhum estiver na linha</span>
+std::optional&lt;<span class="ty">int</span>&gt; <span class="fn">sensorNaLinha</span>(<span class="kw">const</span> std::array&lt;<span class="ty">int</span>, <span class="num">9</span>&gt;&amp; leituras) {
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i &lt; <span class="num">9</span>; i++) {
+        <span class="kw">if</span> (leituras[i] &lt; <span class="num">1000</span>) <span class="kw">return</span> i;  <span class="c">// encontrou linha</span>
+    }
+    <span class="kw">return</span> std::nullopt;                   <span class="c">// "não encontrou"</span>
+}
+
+<span class="kw">auto</span> idx = <span class="fn">sensorNaLinha</span>(leituras);
+
+<span class="kw">if</span> (idx.<span class="fn">has_value</span>()) {
+    <span class="fn">printf</span>(<span class="str">"Sensor %d na linha\n"</span>, idx.<span class="fn">value</span>());
+}
+<span class="c">// Atalho com operador bool e *:</span>
+<span class="kw">if</span> (idx) <span class="fn">printf</span>(<span class="str">"%d\n"</span>, *idx);  <span class="c">// * é UB se vazio — cheque antes!</span>
+</pre>
+      <div class="info-box"><code>std::optional</code> é uma alternativa semântica clara a retornar <code>-1</code>, <code>nullptr</code> ou um flag separado para indicar "sem valor". O tipo da função já documenta a possibilidade de ausência.</div>
+
       <h3>Exemplo: PID moderno em C++</h3>
 <pre>
 <span class="kw">class</span> <span class="ty">PIDController</span> {
@@ -773,7 +1019,13 @@ const QUIZZES = {
       explain: 'O destrutor é chamado quando o objeto sai de escopo ou é deletado. É o lugar correto para liberar recursos como memória alocada, arquivos abertos e conexões — implementando RAII.' },
     { q: 'O que garante o keyword "const" num método: int get() const?',
       opts: ['O método retorna uma constante','O método não pode modificar o estado do objeto','O método é executado em compile-time','O retorno não pode ser modificado'], correct: 1,
-      explain: 'Um método const garante que não modifica nenhum membro do objeto (exceto membros marcados com mutable). Permite chamar o método em objetos const e serve como documentação de ausência de efeitos colaterais.' }
+      explain: 'Um método const garante que não modifica nenhum membro do objeto (exceto membros marcados com mutable). Permite chamar o método em objetos const e serve como documentação de ausência de efeitos colaterais.' },
+    { q: 'O que é um membro static de uma classe em C++?',
+      opts: ['Um membro que não pode ser modificado','Um membro compartilhado por todas as instâncias da classe, inicializado fora da classe','Um membro privado que só o compilador acessa','Um membro que existe apenas em tempo de compilação'], correct: 1,
+      explain: 'Membros static pertencem à classe, não a cada objeto: existe uma única cópia para todos. Deve ser inicializado fora da classe (int Motor::totalMotores = 0;). Acessado via ClassName::membro mesmo sem nenhum objeto criado. Métodos static não têm ponteiro this.' },
+    { q: 'O que permite um método retornar *this por referência?',
+      opts: ['Só é usado no destrutor','Permite encadear múltiplas chamadas de método numa única expressão (method chaining)','Retorna uma cópia do objeto','É obrigatório em todos os métodos public'], correct: 1,
+      explain: 'Retornar *this por referência (Classe& metodo()) permite cascata: obj.setA(1).setB(2).resetar(). Cada chamada recebe o mesmo objeto via referência e retorna ele próprio, viabilizando a próxima chamada na cadeia sem variáveis intermediárias.' }
   ],
   mod2: [
     { q: 'Para que serve o keyword "virtual" num método?',
@@ -787,7 +1039,13 @@ const QUIZZES = {
       explain: 'Sem virtual, deletar um objeto derivado através de um ponteiro de tipo base chama apenas o destrutor da base — o da subclasse é ignorado. Isso causa memory leak de recursos alocados pela subclasse.' },
     { q: 'O que faz override ao declarar um método em subclasse?',
       opts: ['Cria uma segunda versão paralela do método','O compilador verifica que o método realmente existe como virtual na base — erro se não existir','Impede outras subclasses de sobrescrever','Torna o método mais lento por overhead de verificação'], correct: 1,
-      explain: 'override é verificado em compile-time: se o método não existe como virtual na base (ou se assinatura diverge), o compilador emite erro. Sem override, um typo no nome cria silenciosamente um novo método em vez de sobrescrever.' }
+      explain: 'override é verificado em compile-time: se o método não existe como virtual na base (ou se assinatura diverge), o compilador emite erro. Sem override, um typo no nome cria silenciosamente um novo método em vez de sobrescrever.' },
+    { q: 'O que é a vtable em C++?',
+      opts: ['Uma tabela de variáveis globais virtuais','Uma tabela de ponteiros de função criada pelo compilador para implementar o dispatch dinâmico de métodos virtual','Um array de objetos herdados','Uma estrutura de dados para coleta de lixo automática'], correct: 1,
+      explain: 'vtable (virtual function table): cada classe com métodos virtual recebe uma tabela de ponteiros para suas funções virtuais. Cada objeto guarda um ponteiro oculto para a vtable de sua classe real. Ao chamar um método virtual via ponteiro de base, o runtime segue o ponteiro vtable para encontrar a implementação correta.' },
+    { q: 'Na herança public, o que acontece com membros public da classe base?',
+      opts: ['Tornam-se private na classe derivada','Tornam-se protected na classe derivada','Permanecem public na classe derivada','São removidos da interface da classe derivada'], correct: 2,
+      explain: 'Herança public preserva os níveis de acesso: membros public da base ficam public na derivada, protected ficam protected. Este é o tipo correto para modelar relacionamento "é-um" (is-a). Com herança private, todos os membros se tornam private e o polimorfismo deixa de funcionar.' }
   ],
   mod3: [
     { q: 'O que é um function template?',
@@ -801,7 +1059,13 @@ const QUIZZES = {
       explain: 'std::string é uma classe que gerencia a memória do buffer internamente. Suporta comparação com ==, concatenação com +=, e vários métodos utilitários. Com char*, você gerencia a memória manualmente e usa funções de string.h.' },
     { q: 'O que faz std::map<string, float>?',
       opts: ['Mapeia floats para strings','Cria um dicionário ordenado: dado uma chave string, retorna o float associado','Converte string para float','Cria uma lista de pares desordenada'], correct: 1,
-      explain: 'std::map é um contêiner de pares chave-valor mantidos em ordem (por árvore balanceada). Acesso por chave em O(log n). Para acesso em O(1) médio, use std::unordered_map.' }
+      explain: 'std::map é um contêiner de pares chave-valor mantidos em ordem (por árvore balanceada). Acesso por chave em O(log n). Para acesso em O(1) médio, use std::unordered_map.' },
+    { q: 'Qual a principal vantagem de std::array<T,N> sobre um array C int arr[N]?',
+      opts: ['std::array é alocado na heap dinamicamente','std::array conhece seu tamanho, funciona com algoritmos STL e não decai silenciosamente para ponteiro','std::array permite tamanho dinâmico em runtime','std::array é mais rápido que arrays C em todo acesso'], correct: 1,
+      explain: 'std::array<T,N> é alocado na stack assim como int arr[N], mas conhece seu tamanho via .size(), funciona com begin()/end() e todos os algoritmos STL como sort e find, e não decai para ponteiro ao ser passado para funções — evitando a perda silenciosa do tamanho.' },
+    { q: 'Qual a diferença de complexidade de acesso entre std::map e std::unordered_map?',
+      opts: ['Ambos são O(1) médio','std::map é O(1), std::unordered_map é O(log n)','std::map é O(log n) (árvore balanceada), std::unordered_map é O(1) médio (hash table)','Ambos são O(log n)'], correct: 2,
+      explain: 'std::map usa árvore rubro-negra → O(log n) para insert/find, mantém chaves ordenadas. std::unordered_map usa tabela hash → O(1) amortizado, mas sem garantia de ordem. Use map quando precisar iterar em ordem; unordered_map quando velocidade é prioridade.' }
   ],
   mod4: [
     { q: 'Qual a diferença fundamental entre referência e ponteiro em C++?',
@@ -815,7 +1079,13 @@ const QUIZZES = {
       explain: 'delete libera um único objeto. delete[] libera um array, chamando o destrutor de cada elemento antes. Usar delete em um array é comportamento indefinido — na prática, corrupção de heap ou apenas o primeiro destrutor é chamado.' },
     { q: 'Qual a vantagem de unique_ptr sobre raw new/delete?',
       opts: ['unique_ptr é mais rápido','Gerencia automaticamente o delete: o objeto é destruído quando o unique_ptr sai do escopo, sem memory leak mesmo em exceções','Permite múltiplos donos do mesmo objeto','É mais compatível com C'] , correct: 1,
-      explain: 'unique_ptr é um RAII wrapper: no destrutor, chama delete automaticamente. Sem unique_ptr, qualquer caminho de saída da função (return antecipado, exceção) que pule o delete manual causa memory leak.' }
+      explain: 'unique_ptr é um RAII wrapper: no destrutor, chama delete automaticamente. Sem unique_ptr, qualquer caminho de saída da função (return antecipado, exceção) que pule o delete manual causa memory leak.' },
+    { q: 'O que é sobrecarga de operadores (operator overloading) em C++?',
+      opts: ['Criar novos operadores como ** ou @@','Redefinir o comportamento de operadores existentes (+, ==, <<) para tipos definidos pelo usuário','Tornar um operador executar mais rápido','Sobrescrever operadores de outra biblioteca'], correct: 1,
+      explain: 'Sobrecarga de operadores permite que +, ==, << funcionem com suas classes: Vetor2D c = a + b chama operator+(). Não se pode criar novos operadores, nem alterar precedência ou associatividade. Operadores ., .*, :: e ?: não podem ser sobrecarregados.' },
+    { q: 'Quando o construtor de cópia é chamado automaticamente?',
+      opts: ['Apenas quando explicitamente chamado pelo programador com new','Ao passar objeto por valor para função, retornar por valor ou inicializar um objeto a partir de outro do mesmo tipo','Só durante construção normal com new','Ao usar o operador = em qualquer contexto'], correct: 1,
+      explain: 'O construtor de cópia Buffer(const Buffer&) é invocado em três situações: (1) passagem por valor: f(b), (2) retorno por valor: return b, (3) inicialização: Buffer c = b. Para classes com ponteiros, implemente cópia profunda para evitar dois objetos compartilhando a mesma memória alocada.' }
   ],
   mod5: [
     { q: 'O que faz o keyword "auto" em: auto x = 42?',
@@ -832,7 +1102,13 @@ const QUIZZES = {
       explain: 'enum class (scoped enum): membros ficam no escopo do enum (Cor::Vermelho, não apenas Vermelho), não há conversão implícita para int (if(cor == 1) é erro de compilação), e dois enums podem ter membros com o mesmo nome.' },
     { q: 'O que faz constexpr em: constexpr int N = 9?',
       opts: ['N é const mas pode ser mudado via cast','N é avaliado em tempo de compilação e pode ser usado em contextos que exigem constante (tamanho de array, etc.)','constexpr é o mesmo que const','N fica mais rápido de acessar em runtime'], correct: 1,
-      explain: 'constexpr garante que a expressão é avaliada em tempo de compilação. Diferente de const (que pode ser um valor determinado em runtime), constexpr pode ser usado como tamanho de array estático, argumento de template, etc.' }
+      explain: 'constexpr garante que a expressão é avaliada em tempo de compilação. Diferente de const (que pode ser um valor determinado em runtime), constexpr pode ser usado como tamanho de array estático, argumento de template, etc.' },
+    { q: 'O que faz std::move(obj) em C++11?',
+      opts: ['Copia obj para outro local na memória','Converte obj para rvalue reference (&&), permitindo que seus recursos sejam transferidos por um construtor/operador de movimento — O(1) em vez de O(n)','Deleta obj da memória imediatamente','Move obj fisicamente da stack para a heap'], correct: 1,
+      explain: 'std::move não move nada por si só: converte o objeto para rvalue reference (T&&). O construtor ou operador de atribuição de movimento que recebe esse && pode "roubar" os recursos internos (ponteiros, buffers) em vez de copiá-los, tornando a operação O(1). Após o move, o objeto de origem fica em estado válido mas não especificado.' },
+    { q: 'Para que serve std::optional<T> em C++17?',
+      opts: ['Para criar variáveis que podem mudar de tipo em runtime','Para representar um valor que pode ou não existir, evitando valores sentinela como -1 ou nullptr','Para tornar parâmetros de função opcionais','Para criar smart pointers que não precisam de delete'], correct: 1,
+      explain: 'std::optional<T> encapsula um T que pode não existir. Alternativa mais segura e expressiva a retornar -1, nullptr ou um bool separado. Use has_value() ou operador bool para verificar, value() ou * para acessar. Retorne std::nullopt para indicar ausência de valor.' }
   ]
 };
 
