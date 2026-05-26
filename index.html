@@ -73,8 +73,8 @@
     border-radius: 16px;
     padding: 36px 32px 32px;
     width: 380px;
-    text-decoration: none;
     color: inherit;
+    cursor: pointer;
     transition: transform .2s, border-color .2s, box-shadow .2s;
     position: relative;
     overflow: hidden;
@@ -90,6 +90,11 @@
     border-color: var(--orange);
     box-shadow: 0 12px 40px rgba(255,106,0,.18);
   }
+  .card--logica::before { background: linear-gradient(90deg, #00bcd4, #4dd0e1); }
+  .card--logica:hover   { border-color: #00bcd4; }
+  .card--git::before    { background: linear-gradient(90deg, #43a047, #66bb6a); }
+  .card--git:hover      { border-color: #43a047; }
+
   .card .lang-badge {
     display: inline-block;
     background: rgba(255,106,0,.15);
@@ -103,7 +108,7 @@
     margin-bottom: 16px;
   }
   .card h2 { font-size: 1.55rem; font-weight: 800; margin-bottom: 10px; }
-  .card p { font-size: .92rem; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+  .card p  { font-size: .92rem; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
   .card .meta {
     display: flex; gap: 18px;
     font-size: .82rem; color: var(--muted);
@@ -124,12 +129,17 @@
     width: 0%;
     transition: width .6s ease;
   }
-  .prog-label { font-size: .75rem; color: var(--muted); }
+  .prog-label { font-size: .75rem; color: var(--muted); margin-bottom: 20px; }
 
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
   .cta-btn {
     display: inline-block;
-    margin-top: 18px;
-    padding: 10px 28px;
+    padding: 10px 24px;
     background: linear-gradient(135deg, var(--orange), var(--gold));
     color: #000;
     font-weight: 700;
@@ -141,8 +151,6 @@
   .cta-btn:hover { opacity: .88; transform: scale(1.03); }
   .cta-btn-quiz {
     display: inline-block;
-    margin-top: 10px;
-    margin-left: 10px;
     padding: 10px 20px;
     background: transparent;
     color: var(--orange);
@@ -187,61 +195,69 @@
   </div>
 
   <div class="cards">
-    <a class="card" href="trilha-logica.html" style="--card-accent:#00bcd4;">
-      <style>.card[href="trilha-logica.html"]::before{background:linear-gradient(90deg,#00bcd4,#4dd0e1);}</style>
+
+    <div class="card card--logica" onclick="location.href='trilha-logica.html'">
       <div class="lang-badge" style="background:rgba(0,188,212,.15);color:#00bcd4;border-color:rgba(0,188,212,.3);">LÓGICA</div>
       <h2>Trilha Lógica</h2>
       <p>Pensamento computacional, algoritmos, variáveis, decisões e loops — sem linguagem de programação, só raciocínio.</p>
       <div class="meta">
-        <span>📦 6 módulos</span>
-        <span>🧩 30 questões</span>
+        <span>6 módulos</span>
+        <span>30 questões</span>
       </div>
       <div class="prog-bar"><div class="prog-bar-fill" id="prog-logica" style="background:linear-gradient(90deg,#00bcd4,#4dd0e1);"></div></div>
       <div class="prog-label" id="prog-logica-lbl">0 / 6 módulos concluídos</div>
-      <span class="cta-btn" style="background:linear-gradient(135deg,#00bcd4,#4dd0e1);color:#000;">Iniciar Trilha →</span>
-    </a>
+      <div class="card-actions">
+        <a class="cta-btn" href="trilha-logica.html" onclick="event.stopPropagation()" style="background:linear-gradient(135deg,#00bcd4,#4dd0e1);color:#000;">Iniciar Trilha →</a>
+      </div>
+    </div>
 
-    <a class="card" href="trilha-c.html">
+    <div class="card" onclick="location.href='trilha-c.html'">
       <div class="lang-badge">LINGUAGEM C</div>
       <h2>Trilha C</h2>
       <p>Fundamentos sólidos de C: tipos, ponteiros, structs, memória dinâmica e arquivos. A base de tudo.</p>
       <div class="meta">
-        <span>📦 8 módulos</span>
-        <span>🧩 39 questões</span>
+        <span>8 módulos</span>
+        <span>39 questões</span>
       </div>
       <div class="prog-bar"><div class="prog-bar-fill" id="prog-c"></div></div>
       <div class="prog-label" id="prog-c-lbl">0 / 8 módulos concluídos</div>
-      <span class="cta-btn">Iniciar Trilha →</span>
-      <a class="cta-btn-quiz" href="trilha-questoes-c.html" onclick="event.stopPropagation()">Banco de Questões</a>
-    </a>
+      <div class="card-actions">
+        <a class="cta-btn" href="trilha-c.html" onclick="event.stopPropagation()">Iniciar Trilha →</a>
+        <a class="cta-btn-quiz" href="trilha-questoes-c.html" onclick="event.stopPropagation()">Banco de Questões</a>
+      </div>
+    </div>
 
-    <a class="card" href="trilha-cpp.html">
+    <div class="card" onclick="location.href='trilha-cpp.html'">
       <div class="lang-badge">LINGUAGEM C++</div>
       <h2>Trilha C++</h2>
       <p>Classes, herança, templates, STL, RAII e C++ moderno. Programação orientada a objetos na prática.</p>
       <div class="meta">
-        <span>📦 5 módulos</span>
-        <span>🧩 32 questões</span>
+        <span>5 módulos</span>
+        <span>32 questões</span>
       </div>
       <div class="prog-bar"><div class="prog-bar-fill" id="prog-cpp"></div></div>
       <div class="prog-label" id="prog-cpp-lbl">0 / 5 módulos concluídos</div>
-      <span class="cta-btn">Iniciar Trilha →</span>
-      <a class="cta-btn-quiz" href="trilha-questoes-cpp.html" onclick="event.stopPropagation()">Banco de Questões</a>
-    </a>
+      <div class="card-actions">
+        <a class="cta-btn" href="trilha-cpp.html" onclick="event.stopPropagation()">Iniciar Trilha →</a>
+        <a class="cta-btn-quiz" href="trilha-questoes-cpp.html" onclick="event.stopPropagation()">Banco de Questões</a>
+      </div>
+    </div>
 
-    <a class="card" href="trilha-git.html" style="--card-accent:#43a047;">
-      <style>.card[href="trilha-git.html"]::before{background:linear-gradient(90deg,#43a047,#66bb6a);}</style>
+    <div class="card card--git" onclick="location.href='trilha-git.html'">
       <div class="lang-badge" style="background:rgba(67,160,71,.15);color:#43a047;border-color:rgba(67,160,71,.3);">GIT</div>
       <h2>Trilha Git</h2>
       <p>Controle de versão do zero ao avançado: branches, merge, rebase, remotos, fluxos de equipe e boas práticas.</p>
       <div class="meta">
-        <span>📦 7 módulos</span>
-        <span>🧩 35 questões</span>
+        <span>7 módulos</span>
+        <span>35 questões</span>
       </div>
       <div class="prog-bar"><div class="prog-bar-fill" id="prog-git" style="background:linear-gradient(90deg,#43a047,#66bb6a);"></div></div>
       <div class="prog-label" id="prog-git-lbl">0 / 7 módulos concluídos</div>
-      <span class="cta-btn" style="background:linear-gradient(135deg,#43a047,#66bb6a);color:#000;">Iniciar Trilha →</span>
-    </a>
+      <div class="card-actions">
+        <a class="cta-btn" href="trilha-git.html" onclick="event.stopPropagation()" style="background:linear-gradient(135deg,#43a047,#66bb6a);color:#000;">Iniciar Trilha →</a>
+      </div>
+    </div>
+
   </div>
 
   <footer>Phoenix Unicamp · C/C++ Training Platform · Material de formação interna</footer>
@@ -249,7 +265,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// Progress from localStorage
 function updateProgress() {
   const logicaTotal = 6, cTotal = 8, cppTotal = 5, gitTotal = 7;
   let logicaDone = 0, cDone = 0, cppDone = 0, gitDone = 0;
@@ -268,7 +283,6 @@ function updateProgress() {
 }
 updateProgress();
 
-// Three.js particle network
 const canvas = document.getElementById('canvas-bg');
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -282,7 +296,7 @@ const N = 110;
 const positions = new Float32Array(N * 3);
 const velocities = [];
 for (let i = 0; i < N; i++) {
-  positions[i * 3] = (Math.random() - .5) * 160;
+  positions[i * 3]     = (Math.random() - .5) * 160;
   positions[i * 3 + 1] = (Math.random() - .5) * 100;
   positions[i * 3 + 2] = (Math.random() - .5) * 40;
   velocities.push((Math.random() - .5) * .04, (Math.random() - .5) * .04, 0);
@@ -322,8 +336,8 @@ function animate() {
   for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) {
     const dx = positions[i * 3] - positions[j * 3], dy = positions[i * 3 + 1] - positions[j * 3 + 1];
     if (dx * dx + dy * dy < 150) {
-      linePos[lc++] = positions[i * 3]; linePos[lc++] = positions[i * 3 + 1]; linePos[lc++] = positions[i * 3 + 2];
-      linePos[lc++] = positions[j * 3]; linePos[lc++] = positions[j * 3 + 1]; linePos[lc++] = positions[j * 3 + 2];
+      linePos[lc++] = positions[i * 3];     linePos[lc++] = positions[i * 3 + 1]; linePos[lc++] = positions[i * 3 + 2];
+      linePos[lc++] = positions[j * 3];     linePos[lc++] = positions[j * 3 + 1]; linePos[lc++] = positions[j * 3 + 2];
     }
   }
   lineGeo.setDrawRange(0, lc / 3);
