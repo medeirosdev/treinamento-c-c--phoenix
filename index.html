@@ -64,7 +64,7 @@
     gap: 32px;
     justify-content: center;
     padding: 40px 24px 80px;
-    max-width: 1260px;
+    max-width: 1640px;
     margin: 0 auto;
   }
   .card {
@@ -211,6 +211,20 @@
       <div class="prog-label" id="prog-cpp-lbl">0 / 5 módulos concluídos</div>
       <span class="cta-btn">Iniciar Trilha →</span>
     </a>
+
+    <a class="card" href="trilha-git.html" style="--card-accent:#43a047;">
+      <style>.card[href="trilha-git.html"]::before{background:linear-gradient(90deg,#43a047,#66bb6a);}</style>
+      <div class="lang-badge" style="background:rgba(67,160,71,.15);color:#43a047;border-color:rgba(67,160,71,.3);">GIT</div>
+      <h2>Trilha Git</h2>
+      <p>Controle de versão do zero ao avançado: branches, merge, rebase, remotos, fluxos de equipe e boas práticas.</p>
+      <div class="meta">
+        <span>📦 7 módulos</span>
+        <span>🧩 35 questões</span>
+      </div>
+      <div class="prog-bar"><div class="prog-bar-fill" id="prog-git" style="background:linear-gradient(90deg,#43a047,#66bb6a);"></div></div>
+      <div class="prog-label" id="prog-git-lbl">0 / 7 módulos concluídos</div>
+      <span class="cta-btn" style="background:linear-gradient(135deg,#43a047,#66bb6a);color:#000;">Iniciar Trilha →</span>
+    </a>
   </div>
 
   <footer>Phoenix Unicamp · C/C++ Training Platform · Material de formação interna</footer>
@@ -220,17 +234,20 @@
 <script>
 // Progress from localStorage
 function updateProgress() {
-  const logicaTotal = 6, cTotal = 8, cppTotal = 5;
-  let logicaDone = 0, cDone = 0, cppDone = 0;
+  const logicaTotal = 6, cTotal = 8, cppTotal = 5, gitTotal = 7;
+  let logicaDone = 0, cDone = 0, cppDone = 0, gitDone = 0;
   for (let i = 1; i <= logicaTotal; i++) if (localStorage.getItem(`tc_logica_mod${i}`) === 'done') logicaDone++;
   for (let i = 1; i <= cTotal; i++) if (localStorage.getItem(`tc_c_mod${i}`) === 'done') cDone++;
   for (let i = 1; i <= cppTotal; i++) if (localStorage.getItem(`tc_cpp_mod${i}`) === 'done') cppDone++;
+  for (let i = 1; i <= gitTotal; i++) if (localStorage.getItem(`tc_git_mod${i}`) === 'done') gitDone++;
   document.getElementById('prog-logica').style.width = (logicaDone / logicaTotal * 100) + '%';
   document.getElementById('prog-logica-lbl').textContent = `${logicaDone} / ${logicaTotal} módulos concluídos`;
   document.getElementById('prog-c').style.width = (cDone / cTotal * 100) + '%';
   document.getElementById('prog-c-lbl').textContent = `${cDone} / ${cTotal} módulos concluídos`;
   document.getElementById('prog-cpp').style.width = (cppDone / cppTotal * 100) + '%';
   document.getElementById('prog-cpp-lbl').textContent = `${cppDone} / ${cppTotal} módulos concluídos`;
+  document.getElementById('prog-git').style.width = (gitDone / gitTotal * 100) + '%';
+  document.getElementById('prog-git-lbl').textContent = `${gitDone} / ${gitTotal} módulos concluídos`;
 }
 updateProgress();
 

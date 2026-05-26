@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha Git — C/C++ Training · Phoenix Unicamp</title>
+<style>
+  :root {
+    --bg: #080600; --surface: #050a05; --surface2: #0a120a;
+    --orange: #ff6a00; --gold: #ffaa00;
+    --text: #f0ece0; --muted: #6a7a60; --border: rgba(67,160,71,0.18);
+    --sidebar-w: 260px;
+    --green: #4caf50; --red: #f44336;
+    --git: #43a047; --git-dim: rgba(67,160,71,0.18);
+    --git-light: #66bb6a; --git-dark: #2e7d32;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border);
+    overflow-y: auto; z-index: 100; padding: 0 0 40px;
+    transition: transform .28s ease;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .sidebar-header a { color: var(--orange); text-decoration: none; font-size: .82rem; }
+  .sidebar-header h3 { font-size: .95rem; margin-top: 8px; color: var(--git); }
+  .sidebar-header p { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+  .mod-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; font-size: .85rem;
+    border-left: 3px solid transparent; transition: all .15s; color: var(--muted);
+    text-decoration: none;
+  }
+  .mod-link:hover { background: rgba(67,160,71,.06); color: var(--text); }
+  .mod-link.active { border-left-color: var(--git); color: var(--git); background: rgba(67,160,71,.08); }
+  .mod-link.done { color: var(--green); }
+  .mod-link.done::after { content: ' ✓'; font-size: .75rem; }
+  .mod-num {
+    min-width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(67,160,71,.15); color: var(--git);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700;
+  }
+  .sidebar-prog { padding: 16px 20px 8px; }
+  .sidebar-prog-bar { height: 4px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+  .sidebar-prog-fill { height: 100%; background: linear-gradient(90deg, var(--git), var(--git-light)); border-radius: 4px; transition: width .5s; }
+  .sidebar-prog-lbl { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+
+  .hamburger {
+    display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    width: 40px; height: 40px; cursor: pointer; align-items: center;
+    justify-content: center; flex-direction: column; gap: 5px;
+  }
+  .hamburger span { display: block; width: 20px; height: 2px; background: var(--git); border-radius: 2px; }
+
+  .main { margin-left: var(--sidebar-w); min-height: 100vh; padding: 0 0 80px; }
+  .topbar {
+    padding: 18px 40px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(5,10,5,.92); backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .lang-badge {
+    background: rgba(67,160,71,.15); color: var(--git);
+    border: 1px solid rgba(67,160,71,.3); border-radius: 6px;
+    padding: 2px 10px; font-size: .75rem; font-weight: 700;
+  }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+  .topbar a { color: var(--orange); text-decoration: none; font-size: .82rem; margin-left: auto; }
+
+  .module { padding: 40px 40px 60px; border-bottom: 1px solid var(--border); scroll-margin-top: 72px; }
+  .mod-title { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .mod-title .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--git), var(--git-light));
+    color: #000; font-weight: 800; font-size: .88rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mod-title h2 { font-size: 1.5rem; font-weight: 800; }
+  .mod-title .badge { margin-left: auto; padding: 3px 10px; background: rgba(255,106,0,.1); color: var(--muted); border-radius: 99px; font-size: .72rem; }
+  .mod-title .badge.done-badge { background: rgba(76,175,80,.15); color: var(--green); }
+
+  .content-block { max-width: 780px; }
+  .content-block h3 { font-size: 1.1rem; color: var(--git); margin: 28px 0 10px; }
+  .content-block h4 { font-size: .95rem; color: var(--git-light); margin: 20px 0 8px; }
+  .content-block p { font-size: .93rem; line-height: 1.75; color: #d0d8c8; margin-bottom: 12px; }
+  .content-block ul, .content-block ol { padding-left: 22px; margin-bottom: 14px; }
+  .content-block li { font-size: .93rem; line-height: 1.7; color: #d0d8c8; margin-bottom: 4px; }
+  .content-block strong { color: var(--text); }
+  .content-block code { background: rgba(67,160,71,.12); color: var(--git-light); padding: 1px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: .87em; }
+
+  /* ─── Terminal / command block ─── */
+  .cmd {
+    background: #010a01;
+    border: 1px solid rgba(67,160,71,.22);
+    border-left: 4px solid var(--git);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .85rem;
+    line-height: 1.85;
+    margin: 16px 0;
+    color: #c8e6c9;
+    white-space: pre;
+  }
+  .cmd .prompt { color: var(--git); font-weight: 700; }
+  .cmd .out { color: #a5d6a7; }
+  .cmd .flag { color: #fff176; }
+  .cmd .cmt { color: #37474f; font-style: italic; }
+  .cmd .err { color: #ef9a9a; }
+
+  /* ─── Diagram / ASCII art block ─── */
+  .diag {
+    background: #010a01;
+    border: 1px solid rgba(67,160,71,.15);
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .82rem;
+    line-height: 1.7;
+    margin: 16px 0;
+    color: #b2dfdb;
+    white-space: pre;
+  }
+  .diag .hi { color: var(--git-light); font-weight: 700; }
+  .diag .muted { color: #455a64; }
+
+  /* ─── Info / tip box ─── */
+  .git-box {
+    background: rgba(67,160,71,.07);
+    border-left: 4px solid var(--git);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: .9rem;
+    line-height: 1.65;
+    color: #c8e6c9;
+  }
+  .git-box strong { color: var(--git-light); }
+
+  /* ─── Warning box ─── */
+  .warn-box {
+    background: rgba(255,152,0,.07);
+    border-left: 4px solid #ff9800;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: .9rem;
+    line-height: 1.65;
+    color: #ffe0b2;
+  }
+
+  /* ─── Table ─── */
+  .git-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: .88rem; }
+  .git-table th { background: rgba(67,160,71,.15); color: var(--git-light); padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(67,160,71,.25); }
+  .git-table td { padding: 9px 14px; border-bottom: 1px solid rgba(67,160,71,.08); color: #d0d8c8; }
+  .git-table tr:hover td { background: rgba(67,160,71,.04); }
+
+  /* ─── Quiz ─── */
+  .quiz-section { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border); }
+  .quiz-section h3 { font-size: 1.05rem; color: var(--git-light); margin-bottom: 20px; }
+  .quiz-item { margin-bottom: 24px; }
+  .quiz-item p { font-size: .93rem; color: var(--text); margin-bottom: 10px; font-weight: 500; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .opt-btn {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px; cursor: pointer; font-size: .88rem; color: var(--text);
+    text-align: left; transition: background .15s, border-color .15s;
+    font-family: inherit;
+  }
+  .opt-btn:hover:not(:disabled) { background: rgba(67,160,71,.1); border-color: var(--git); }
+  .opt-btn.correct { background: rgba(76,175,80,.18); border-color: var(--green); color: #a5d6a7; }
+  .opt-btn.wrong { background: rgba(244,67,54,.12); border-color: var(--red); color: #ef9a9a; }
+
+  .complete-btn {
+    margin-top: 28px; padding: 12px 32px;
+    background: linear-gradient(135deg, var(--git), var(--git-light));
+    color: #000; font-weight: 700; font-size: .95rem;
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: opacity .2s, transform .15s;
+  }
+  .complete-btn:hover { opacity: .88; transform: scale(1.02); }
+  .complete-btn:disabled { opacity: .45; cursor: default; }
+
+  @media (max-width: 700px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .hamburger { display: flex; }
+    .main { margin-left: 0; }
+    .module { padding: 24px 16px 40px; }
+    .topbar { padding: 14px 16px; padding-left: 60px; }
+    .topbar a { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">← Todas as trilhas</a>
+    <h3>Trilha Git</h3>
+    <p>Pro Git — Scott Chacon &amp; Ben Straub</p>
+  </div>
+  <div class="sidebar-prog">
+    <div class="sidebar-prog-bar"><div class="sidebar-prog-fill" id="side-prog"></div></div>
+    <div class="sidebar-prog-lbl" id="side-lbl">0 / 7 módulos concluídos</div>
+  </div>
+  <a class="mod-link" id="sl-1" href="#mod1"><span class="mod-num">1</span>Introdução e Configuração</a>
+  <a class="mod-link" id="sl-2" href="#mod2"><span class="mod-num">2</span>Fundamentos — init, add, commit</a>
+  <a class="mod-link" id="sl-3" href="#mod3"><span class="mod-num">3</span>Branches e Merging</a>
+  <a class="mod-link" id="sl-4" href="#mod4"><span class="mod-num">4</span>Remotos e Colaboração</a>
+  <a class="mod-link" id="sl-5" href="#mod5"><span class="mod-num">5</span>Desfazendo Coisas</a>
+  <a class="mod-link" id="sl-6" href="#mod6"><span class="mod-num">6</span>Rebase, Tags e Aliases</a>
+  <a class="mod-link" id="sl-7" href="#mod7"><span class="mod-num">7</span>Fluxo em Equipe e Boas Práticas</a>
+</aside>
+
+<button class="hamburger" id="ham" onclick="document.getElementById('sidebar').classList.toggle('open')">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="main">
+  <div class="topbar">
+    <span class="lang-badge">GIT</span>
+    <h1>Trilha Git</h1>
+    <a href="index.html">← Voltar ao índice</a>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 1 -->
+  <section class="module" id="mod1">
+    <div class="mod-title">
+      <div class="num">1</div>
+      <h2>Introdução e Configuração</h2>
+      <span class="badge" id="badge1">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>O que é Controle de Versão?</h3>
+      <p>Um <strong>Sistema de Controle de Versão (VCS)</strong> registra alterações em arquivos ao longo do tempo, permitindo recuperar versões específicas, comparar mudanças, identificar quem introduziu um bug e quando — e reverter o projeto inteiro para um estado anterior caso algo dê errado.</p>
+
+      <h4>Três gerações de VCS</h4>
+      <table class="git-table">
+        <tr><th>Tipo</th><th>Exemplo</th><th>Característica</th></tr>
+        <tr><td>Local</td><td>RCS</td><td>Banco de dados de patches numa única máquina</td></tr>
+        <tr><td>Centralizado (CVCS)</td><td>SVN, Perforce</td><td>Servidor único; se cair, ninguém trabalha</td></tr>
+        <tr><td>Distribuído (DVCS)</td><td><strong>Git</strong>, Mercurial</td><td>Cada cliente possui o repositório <em>completo</em> com todo o histórico</td></tr>
+      </table>
+
+      <div class="git-box"><strong>Por que distribuído é melhor?</strong> Se o servidor morrer, qualquer clone de cliente pode restaurá-lo. Todo trabalho offline é possível — você commita localmente e sincroniza depois.</div>
+
+      <h3>Uma Breve História do Git</h3>
+      <p>Em 2002 o kernel Linux usava o sistema proprietário <strong>BitKeeper</strong>. Em 2005 o relacionamento entre a comunidade e a empresa se rompeu. <strong>Linus Torvalds</strong> então criou o Git com objetivos claros:</p>
+      <ul>
+        <li>Velocidade</li>
+        <li>Design simples</li>
+        <li>Forte suporte a desenvolvimento não-linear (milhares de branches paralelos)</li>
+        <li>Totalmente distribuído</li>
+        <li>Capaz de lidar com projetos grandes como o kernel Linux</li>
+      </ul>
+
+      <h3>Como o Git Pensa nos Dados</h3>
+      <p>A maioria dos outros VCS armazena dados como uma lista de mudanças por arquivo (<em>delta-based</em>). O Git é diferente: ele pensa nos dados como uma <strong>série de snapshots</strong> de um mini sistema de arquivos.</p>
+      <div class="diag"><span class="hi">Outros VCS (delta-based):</span>
+  Arquivo A ──── Δ1 ─────────────── Δ2
+  Arquivo B ──────────── Δ1 ──── Δ2
+  Versão:    V1    V2     V3     V4
+
+<span class="hi">Git (snapshots):</span>
+  V1        V2        V3        V4
+  A1        A1─────── A2        A2
+  B (─────) B1        B1        B2
+  C1        C2        C2 (────) C3
+<span class="muted">  (dashed = link para o snapshot anterior idêntico)</span></div>
+
+      <h3>Os Três Estados de um Arquivo</h3>
+      <p>Esta é a coisa mais importante a entender sobre o Git:</p>
+      <table class="git-table">
+        <tr><th>Estado</th><th>Onde está</th><th>Significado</th></tr>
+        <tr><td><code>modified</code></td><td>Working tree</td><td>Arquivo foi alterado, mas não commitado</td></tr>
+        <tr><td><code>staged</code></td><td>Staging area (index)</td><td>Modificação marcada para entrar no próximo commit</td></tr>
+        <tr><td><code>committed</code></td><td>.git directory</td><td>Dado salvo com segurança no banco local</td></tr>
+      </table>
+      <div class="diag"><span class="hi">Working Tree</span>   <span class="hi">Staging Area</span>   <span class="hi">.git (Repository)</span>
+  ┌──────────┐     ┌────────────┐     ┌───────────────┐
+  │  editar  │─────▶  git add  │─────▶  git commit   │
+  │  arquivos│     │            │     │               │
+  └──────────┘     └────────────┘     └───────────────┘
+       ◀──────────────────────────── git checkout ─────</div>
+
+      <h3>Instalação do Git</h3>
+      <div class="cmd"><span class="prompt">$</span> <span class="flag">sudo apt install git-all</span>     <span class="cmt"># Debian/Ubuntu</span>
+<span class="prompt">$</span> <span class="flag">sudo dnf install git-all</span>     <span class="cmt"># Fedora/RHEL</span>
+<span class="prompt">$</span> <span class="flag">git --version</span>               <span class="cmt"># verificar instalação</span>
+<span class="out">git version 2.45.0</span></div>
+
+      <h3>Configuração Inicial — git config</h3>
+      <p>Configurações são armazenadas em 3 níveis (cada nível sobrescreve o anterior):</p>
+      <ul>
+        <li><code>/etc/gitconfig</code> — sistema (<code>--system</code>)</li>
+        <li><code>~/.gitconfig</code> — usuário (<code>--global</code>)</li>
+        <li><code>.git/config</code> — repositório (<code>--local</code>)</li>
+      </ul>
+      <div class="cmd"><span class="prompt">$</span> git config --global user.name <span class="flag">"Seu Nome"</span>
+<span class="prompt">$</span> git config --global user.email <span class="flag">"voce@email.com"</span>
+<span class="prompt">$</span> git config --global core.editor <span class="flag">vim</span>
+<span class="prompt">$</span> git config --global init.defaultBranch <span class="flag">main</span>
+<span class="prompt">$</span> git config --list         <span class="cmt"># ver todas as configurações</span></div>
+      <div class="git-box"><strong>Dica:</strong> Use <code>git config --global</code> apenas uma vez por máquina. O nome e e-mail são gravados em cada commit que você criar — escolha com cuidado.</div>
+
+    </div>
+
+    <!-- Quiz 1 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 1</h3>
+
+      <div class="quiz-item">
+        <p>1. Qual comando configura seu nome globalmente no Git?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(1,1,this,false)">git set user.name "Seu Nome"</button>
+          <button class="opt-btn" onclick="verify(1,1,this,true)">git config --global user.name "Seu Nome"</button>
+          <button class="opt-btn" onclick="verify(1,1,this,false)">git init user.name "Seu Nome"</button>
+          <button class="opt-btn" onclick="verify(1,1,this,false)">git user --global "Seu Nome"</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Qual é a principal vantagem de um DVCS (como o Git) sobre um CVCS (como o SVN)?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(1,2,this,false)">DVCS é mais rápido para criar arquivos grandes</button>
+          <button class="opt-btn" onclick="verify(1,2,this,true)">Cada cliente possui uma cópia completa do repositório com todo o histórico</button>
+          <button class="opt-btn" onclick="verify(1,2,this,false)">DVCS exige servidor central para qualquer operação</button>
+          <button class="opt-btn" onclick="verify(1,2,this,false)">DVCS armazena apenas o diff entre versões, economizando espaço</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Como o Git armazena seus dados internamente?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(1,3,this,false)">Como uma lista de deltas (diferenças) por arquivo ao longo do tempo</button>
+          <button class="opt-btn" onclick="verify(1,3,this,false)">Como cópias comprimidas de cada arquivo individualmente</button>
+          <button class="opt-btn" onclick="verify(1,3,this,true)">Como uma série de snapshots (fotografias) do sistema de arquivos</button>
+          <button class="opt-btn" onclick="verify(1,3,this,false)">Como patches no formato UNIX diff</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. Quais são os três estados possíveis de um arquivo rastreado pelo Git?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(1,4,this,false)">new, tracked, committed</button>
+          <button class="opt-btn" onclick="verify(1,4,this,false)">added, pending, saved</button>
+          <button class="opt-btn" onclick="verify(1,4,this,true)">modified, staged, committed</button>
+          <button class="opt-btn" onclick="verify(1,4,this,false)">edited, indexed, pushed</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Em que nível o arquivo <code>~/.gitconfig</code> atua?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(1,5,this,false)">Nível de sistema (todos os usuários da máquina)</button>
+          <button class="opt-btn" onclick="verify(1,5,this,true)">Nível de usuário (todos os repositórios do usuário atual)</button>
+          <button class="opt-btn" onclick="verify(1,5,this,false)">Nível de repositório (apenas o projeto atual)</button>
+          <button class="opt-btn" onclick="verify(1,5,this,false)">Nível global de rede (todos os usuários de todos os servidores)</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn1" onclick="checkComplete(1)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 2 -->
+  <section class="module" id="mod2">
+    <div class="mod-title">
+      <div class="num">2</div>
+      <h2>Fundamentos — init, add, commit, log</h2>
+      <span class="badge" id="badge2">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Obtendo um Repositório</h3>
+      <p>Há duas formas de ter um repositório Git local:</p>
+      <div class="cmd"><span class="cmt"># 1. Inicializar em diretório existente</span>
+<span class="prompt">$</span> cd meu-projeto
+<span class="prompt">$</span> git init
+<span class="out">Initialized empty Git repository in /meu-projeto/.git/</span>
+
+<span class="cmt"># 2. Clonar repositório existente</span>
+<span class="prompt">$</span> git clone https://github.com/usuario/repo.git
+<span class="prompt">$</span> git clone https://github.com/usuario/repo.git <span class="flag">meu-nome</span>  <span class="cmt"># nome personalizado</span></div>
+
+      <h3>Ciclo de Vida dos Arquivos</h3>
+      <p>Arquivos no repositório vivem entre dois mundos: <strong>rastreados (tracked)</strong> e <strong>não-rastreados (untracked)</strong>.</p>
+      <div class="diag"><span class="hi">Untracked</span>  <span class="hi">Unmodified</span>   <span class="hi">Modified</span>    <span class="hi">Staged</span>
+    │             │             │            │
+    │── git add ──────────────────────────▶ │
+    │             │── editar ──▶ │            │
+    │             │             │── git add ▶│
+    │             │             │            │── git commit ──▶ (Unmodified)
+    │ ◀─────── git rm ─────────────────────  │</div>
+
+      <h3>Verificando o Status</h3>
+      <div class="cmd"><span class="prompt">$</span> git status
+<span class="out">On branch main
+Your branch is up to date with 'origin/main'.
+nothing to commit, working tree clean</span>
+
+<span class="prompt">$</span> echo "Phoenix" > README.md
+<span class="prompt">$</span> git status
+<span class="out">Untracked files:
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+        README.md</span>
+
+<span class="prompt">$</span> git status -s    <span class="cmt"># versão compacta</span>
+<span class="out">?? README.md</span></div>
+
+      <h4>Legenda do git status -s</h4>
+      <table class="git-table">
+        <tr><th>Código</th><th>Significado</th></tr>
+        <tr><td><code>??</code></td><td>Arquivo não rastreado (untracked)</td></tr>
+        <tr><td><code>A</code></td><td>Novo arquivo adicionado ao stage</td></tr>
+        <tr><td><code>M</code></td><td>Arquivo modificado</td></tr>
+        <tr><td><code>MM</code></td><td>Modificado, staged e depois modificado novamente</td></tr>
+      </table>
+
+      <h3>Adicionando Arquivos — git add</h3>
+      <div class="cmd"><span class="prompt">$</span> git add README.md          <span class="cmt"># arquivo específico</span>
+<span class="prompt">$</span> git add src/               <span class="cmt"># diretório inteiro (recursivo)</span>
+<span class="prompt">$</span> git add *.c                <span class="cmt"># padrão glob</span>
+<span class="prompt">$</span> git add -A                 <span class="cmt"># tudo (novos + modificados + removidos)</span></div>
+      <div class="git-box"><strong>Dica importante:</strong> <code>git add</code> captura o arquivo <em>no momento em que é executado</em>. Se você modificar o arquivo depois do <code>git add</code>, precisará rodá-lo novamente para incluir a nova versão no commit.</div>
+
+      <h3>Ignorando Arquivos — .gitignore</h3>
+      <p>Crie um arquivo <code>.gitignore</code> na raiz do projeto antes do primeiro commit:</p>
+      <div class="cmd"><span class="cmt"># .gitignore</span>
+*.o          <span class="cmt"># todos os .o (objetos compilados)</span>
+*.a          <span class="cmt"># arquivos de biblioteca</span>
+!lib.a       <span class="cmt"># exceto lib.a (nega a regra anterior)</span>
+/TODO        <span class="cmt"># apenas o TODO na raiz (não em subdiretórios)</span>
+build/       <span class="cmt"># diretório build inteiro</span>
+doc/*.txt    <span class="cmt"># .txt em doc/ mas não em doc/sub/</span>
+doc/**/*.pdf <span class="cmt"># todos os .pdf em qualquer nível abaixo de doc/</span></div>
+
+      <h3>Visualizando Diferenças — git diff</h3>
+      <div class="cmd"><span class="prompt">$</span> git diff               <span class="cmt"># mudanças não staged (working tree vs stage)</span>
+<span class="prompt">$</span> git diff --staged      <span class="cmt"># mudanças staged (stage vs último commit)</span>
+<span class="prompt">$</span> git diff HEAD~1        <span class="cmt"># comparar com commit anterior</span></div>
+
+      <h3>Criando um Commit</h3>
+      <div class="cmd"><span class="prompt">$</span> git commit -m <span class="flag">"Adiciona arquivo README"</span>
+<span class="out">[main (root-commit) 3a8f2b1] Adiciona arquivo README
+ 1 file changed, 1 insertion(+)</span>
+
+<span class="prompt">$</span> git commit -a -m <span class="flag">"Atualiza README"</span>   <span class="cmt"># -a faz add de todos os tracked automaticamente</span></div>
+      <div class="git-box"><strong>Anatomia de um commit:</strong> hash SHA-1 (40 chars), autor, data, mensagem, ponteiro para o tree (snapshot), ponteiro para o(s) commit(s) pai.</div>
+
+      <h3>Visualizando o Histórico — git log</h3>
+      <div class="cmd"><span class="prompt">$</span> git log                        <span class="cmt"># histórico completo</span>
+<span class="prompt">$</span> git log --oneline              <span class="cmt"># resumido, 1 linha por commit</span>
+<span class="prompt">$</span> git log --oneline --graph      <span class="cmt"># com grafo ASCII de branches</span>
+<span class="prompt">$</span> git log --oneline --graph --all  <span class="cmt"># todas as branches</span>
+<span class="prompt">$</span> git log -5                     <span class="cmt"># últimos 5 commits</span>
+<span class="prompt">$</span> git log --since="2 weeks ago"  <span class="cmt"># filtro por data</span>
+<span class="prompt">$</span> git log --author="Medeiros"    <span class="cmt"># filtro por autor</span>
+<span class="prompt">$</span> git log --grep="fix"           <span class="cmt"># filtro por mensagem</span></div>
+
+      <h3>Removendo e Movendo Arquivos</h3>
+      <div class="cmd"><span class="prompt">$</span> git rm arquivo.txt        <span class="cmt"># remove do stage E do disco</span>
+<span class="prompt">$</span> git rm --cached arquivo.txt  <span class="cmt"># remove só do rastreamento (mantém no disco)</span>
+<span class="prompt">$</span> git mv antigo.c novo.c    <span class="cmt"># equivale a: mv + git rm + git add</span></div>
+
+    </div>
+
+    <!-- Quiz 2 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 2</h3>
+
+      <div class="quiz-item">
+        <p>1. Qual comando inicializa um repositório Git em um diretório existente?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(2,1,this,false)">git start</button>
+          <button class="opt-btn" onclick="verify(2,1,this,true)">git init</button>
+          <button class="opt-btn" onclick="verify(2,1,this,false)">git create</button>
+          <button class="opt-btn" onclick="verify(2,1,this,false)">git new</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Você editou <code>main.c</code> e quer adicioná-lo à staging area. Qual comando usar?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(2,2,this,false)">git commit main.c</button>
+          <button class="opt-btn" onclick="verify(2,2,this,false)">git stage main.c</button>
+          <button class="opt-btn" onclick="verify(2,2,this,true)">git add main.c</button>
+          <button class="opt-btn" onclick="verify(2,2,this,false)">git track main.c</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Qual é a diferença entre <code>git diff</code> e <code>git diff --staged</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(2,3,this,false)">Não há diferença; ambos mostram o mesmo</button>
+          <button class="opt-btn" onclick="verify(2,3,this,true)"><code>git diff</code> mostra unstaged vs stage; <code>git diff --staged</code> mostra stage vs último commit</button>
+          <button class="opt-btn" onclick="verify(2,3,this,false)"><code>git diff</code> compara branches; <code>--staged</code> compara commits</button>
+          <button class="opt-btn" onclick="verify(2,3,this,false)"><code>git diff --staged</code> mostra apenas arquivos deletados</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. O que acontece se você editar um arquivo <em>depois</em> de rodar <code>git add</code> nele, e então fizer o commit sem rodar <code>git add</code> novamente?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(2,4,this,false)">O Git automaticamente inclui a versão mais recente no commit</button>
+          <button class="opt-btn" onclick="verify(2,4,this,false)">O Git recusa o commit e exige git add novamente</button>
+          <button class="opt-btn" onclick="verify(2,4,this,true)">O commit inclui a versão do arquivo do momento do git add, não a edição posterior</button>
+          <button class="opt-btn" onclick="verify(2,4,this,false)">O arquivo é removido do repositório</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Qual linha no <code>.gitignore</code> ignora todos os arquivos <code>.o</code> mas <em>mantém</em> o <code>lib.o</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(2,5,this,false)">*.o e ignore lib.o</button>
+          <button class="opt-btn" onclick="verify(2,5,this,true)">*.o e depois !lib.o numa linha separada</button>
+          <button class="opt-btn" onclick="verify(2,5,this,false)">!*.o e depois lib.o</button>
+          <button class="opt-btn" onclick="verify(2,5,this,false)">*.o --except lib.o</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn2" onclick="checkComplete(2)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 3 -->
+  <section class="module" id="mod3">
+    <div class="mod-title">
+      <div class="num">3</div>
+      <h2>Branches e Merging</h2>
+      <span class="badge" id="badge3">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>O que é uma Branch?</h3>
+      <p>Uma branch no Git é simplesmente um <strong>ponteiro leve e móvel</strong> para um commit. Criar uma branch é escrever 41 bytes num arquivo — é instantâneo, independentemente do tamanho do projeto.</p>
+
+      <h3>HEAD — Onde Você Está</h3>
+      <p><code>HEAD</code> é um ponteiro especial que indica em qual branch (ou commit) você está trabalhando. Quando você faz um commit, a branch atual avança automaticamente.</p>
+      <div class="diag">  C0 ←── C1 ←── C2 ←── C3
+                               ↑
+                          <span class="hi">main</span>  ← <span class="hi">HEAD</span></div>
+
+      <h3>Criando e Trocando de Branch</h3>
+      <div class="cmd"><span class="prompt">$</span> git branch feature        <span class="cmt"># cria branch (não muda para ela)</span>
+<span class="prompt">$</span> git checkout feature      <span class="cmt"># muda para a branch</span>
+<span class="prompt">$</span> git checkout -b feature   <span class="cmt"># cria E muda — atalho</span>
+
+<span class="cmt"># Forma moderna (Git ≥ 2.23)</span>
+<span class="prompt">$</span> git switch feature        <span class="cmt"># muda para branch existente</span>
+<span class="prompt">$</span> git switch -c feature     <span class="cmt"># cria e muda</span>
+<span class="prompt">$</span> git switch -              <span class="cmt"># volta para a branch anterior</span>
+
+<span class="prompt">$</span> git branch                <span class="cmt"># lista branches locais</span>
+<span class="prompt">$</span> git branch -v             <span class="cmt"># com último commit de cada</span>
+<span class="prompt">$</span> git branch --merged       <span class="cmt"># branches já mergeadas em HEAD</span>
+<span class="prompt">$</span> git branch --no-merged    <span class="cmt"># branches ainda não mergeadas</span></div>
+
+      <h3>Workflow Típico com Branches</h3>
+      <p>Cenário: você está desenvolvendo a feature #53, recebe um bug crítico e precisa fazer um hotfix imediatamente.</p>
+      <div class="cmd"><span class="cmt"># 1. Criar branch para a feature</span>
+<span class="prompt">$</span> git checkout -b iss53
+<span class="prompt">$</span> <span class="cmt"># ... trabalhar ...</span>
+<span class="prompt">$</span> git commit -a -m "Início do footer [issue 53]"
+
+<span class="cmt"># 2. Bug crítico! Voltar para main e criar hotfix</span>
+<span class="prompt">$</span> git checkout main
+<span class="prompt">$</span> git checkout -b hotfix
+<span class="prompt">$</span> git commit -a -m "Corrige e-mail quebrado"
+
+<span class="cmt"># 3. Mesclar hotfix em main (fast-forward)</span>
+<span class="prompt">$</span> git checkout main
+<span class="prompt">$</span> git merge hotfix
+<span class="out">Updating f42c576..3a0874c
+Fast-forward
+ index.html | 2 ++</span>
+<span class="prompt">$</span> git branch -d hotfix      <span class="cmt"># deletar branch desnecessária</span>
+
+<span class="cmt"># 4. Voltar à feature e continuar</span>
+<span class="prompt">$</span> git checkout iss53</div>
+
+      <h3>Tipos de Merge</h3>
+      <h4>Fast-Forward</h4>
+      <p>Ocorre quando a branch que receberá o merge está diretamente atrás da que será mesclada — não há trabalho divergente. O Git simplesmente move o ponteiro para frente.</p>
+      <div class="diag">Antes:  main ──▶ C2  /  hotfix ──▶ C4 (à frente de C2)
+Depois: main ──▶ C4           <span class="muted">(ponteiro simplesmente avança)</span></div>
+
+      <h4>3-Way Merge (Merge Commit)</h4>
+      <p>Quando as histórias divergiram, o Git usa os dois snapshots das pontas e o ancestral comum, criando um <em>merge commit</em> com dois pais.</p>
+      <div class="diag">       main ──▶ C4
+      /
+C0─C1─C2
+      \
+       C3─C5 ◀── iss53
+
+Após git merge iss53 em main:
+C0─C1─C2─C4─C6  ◀── main (merge commit C6 tem dois pais)</div>
+
+      <h3>Resolvendo Conflitos</h3>
+      <div class="cmd"><span class="prompt">$</span> git merge iss53
+<span class="err">CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</span>
+
+<span class="cmt"># Conteúdo do arquivo em conflito:</span>
+<span class="out">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+  contact@exemplo.com.br
+=======
+  suporte@exemplo.com.br
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; iss53</span>
+
+<span class="cmt"># Edite o arquivo, resolva o conflito, depois:</span>
+<span class="prompt">$</span> git add index.html
+<span class="prompt">$</span> git commit    <span class="cmt"># Git preenche a mensagem de merge automaticamente</span></div>
+      <div class="git-box"><strong>Marcadores de conflito:</strong> <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> é a versão da sua branch atual; <code>======</code> é o separador; <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch</code> é a versão sendo mergeada. Remova os marcadores e escolha o conteúdo correto.</div>
+
+    </div>
+
+    <!-- Quiz 3 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 3</h3>
+
+      <div class="quiz-item">
+        <p>1. O que o HEAD representa no Git?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(3,1,this,false)">O commit mais antigo do repositório</button>
+          <button class="opt-btn" onclick="verify(3,1,this,true)">Um ponteiro para a branch (ou commit) em que você está trabalhando atualmente</button>
+          <button class="opt-btn" onclick="verify(3,1,this,false)">O servidor remoto principal</button>
+          <button class="opt-btn" onclick="verify(3,1,this,false)">A branch principal chamada main ou master</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Qual comando cria a branch <code>feature/login</code> e já muda para ela?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(3,2,this,false)">git branch feature/login</button>
+          <button class="opt-btn" onclick="verify(3,2,this,false)">git switch feature/login</button>
+          <button class="opt-btn" onclick="verify(3,2,this,true)">git checkout -b feature/login</button>
+          <button class="opt-btn" onclick="verify(3,2,this,false)">git create feature/login</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Quando ocorre um merge <strong>fast-forward</strong>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(3,3,this,false)">Sempre que há conflitos nos arquivos</button>
+          <button class="opt-btn" onclick="verify(3,3,this,true)">Quando a branch de destino é ancestral direto da branch a ser mergeada, sem divergência</button>
+          <button class="opt-btn" onclick="verify(3,3,this,false)">Quando as duas branches têm commits independentes</button>
+          <button class="opt-btn" onclick="verify(3,3,this,false)">Apenas quando há um único arquivo modificado</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. Após resolver um conflito de merge editando o arquivo, qual é o próximo passo?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(3,4,this,false)">git merge --continue</button>
+          <button class="opt-btn" onclick="verify(3,4,this,true)">git add &lt;arquivo&gt; e então git commit</button>
+          <button class="opt-btn" onclick="verify(3,4,this,false)">git push origin main</button>
+          <button class="opt-btn" onclick="verify(3,4,this,false)">git reset --hard HEAD</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Qual comando deleta a branch <code>feature/login</code> após o merge?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(3,5,this,false)">git remove feature/login</button>
+          <button class="opt-btn" onclick="verify(3,5,this,false)">git branch --delete-merged feature/login</button>
+          <button class="opt-btn" onclick="verify(3,5,this,true)">git branch -d feature/login</button>
+          <button class="opt-btn" onclick="verify(3,5,this,false)">git checkout -D feature/login</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn3" onclick="checkComplete(3)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 4 -->
+  <section class="module" id="mod4">
+    <div class="mod-title">
+      <div class="num">4</div>
+      <h2>Remotos e Colaboração</h2>
+      <span class="badge" id="badge4">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>O que são Remotos?</h3>
+      <p>Repositórios remotos são versões do projeto hospedadas na Internet ou na rede. Você pode ter vários remotos, cada um com permissões de leitura ou escrita.</p>
+      <div class="cmd"><span class="prompt">$</span> git remote -v                            <span class="cmt"># listar remotos</span>
+<span class="out">origin  git@github.com:user/projeto.git (fetch)
+origin  git@github.com:user/projeto.git (push)</span>
+
+<span class="prompt">$</span> git remote add origin git@github.com:user/projeto.git   <span class="cmt"># adicionar</span>
+<span class="prompt">$</span> git remote rename origin upstream                        <span class="cmt"># renomear</span>
+<span class="prompt">$</span> git remote remove upstream                               <span class="cmt"># remover</span>
+<span class="prompt">$</span> git remote show origin                                   <span class="cmt"># inspecionar</span></div>
+
+      <h3>Clonando um Repositório</h3>
+      <div class="cmd"><span class="prompt">$</span> git clone https://github.com/user/projeto.git
+<span class="prompt">$</span> git clone git@github.com:user/projeto.git      <span class="cmt"># via SSH</span></div>
+      <p><code>git clone</code> automaticamente: (1) inicializa <code>.git</code>, (2) baixa todos os dados, (3) faz checkout da última versão da branch padrão, e (4) cria o remote <code>origin</code>.</p>
+
+      <h3>Fetch, Pull e Push</h3>
+      <table class="git-table">
+        <tr><th>Comando</th><th>O que faz</th></tr>
+        <tr><td><code>git fetch origin</code></td><td>Baixa novos dados do remoto <em>sem</em> aplicar no working tree</td></tr>
+        <tr><td><code>git pull</code></td><td>Equivale a <code>git fetch</code> + <code>git merge</code> da tracking branch</td></tr>
+        <tr><td><code>git push origin main</code></td><td>Envia commits locais da branch <code>main</code> para o remoto</td></tr>
+      </table>
+
+      <div class="cmd"><span class="prompt">$</span> git fetch origin           <span class="cmt"># baixa, não aplica</span>
+<span class="prompt">$</span> git merge origin/main      <span class="cmt"># aplica manualmente</span>
+
+<span class="prompt">$</span> git pull                   <span class="cmt"># fetch + merge em um passo</span>
+<span class="prompt">$</span> git pull --rebase          <span class="cmt"># fetch + rebase (histórico mais limpo)</span>
+
+<span class="prompt">$</span> git push origin main       <span class="cmt"># envia branch main</span>
+<span class="prompt">$</span> git push -u origin main    <span class="cmt"># envia E configura tracking</span>
+<span class="prompt">$</span> git push origin --delete feature  <span class="cmt"># deleta branch remota</span></div>
+
+      <div class="warn-box"><strong>Atenção:</strong> <code>git push</code> falha se alguém publicou commits que você ainda não tem. Você precisa primeiro fazer <code>git pull</code> (integrar as mudanças), resolver eventuais conflitos, e então <code>git push</code> novamente.</div>
+
+      <h3>Tracking Branches</h3>
+      <p>Quando você clona ou usa <code>-u</code> ao fazer push, o Git configura uma <em>tracking branch</em>: uma relação entre sua branch local e a remota correspondente.</p>
+      <div class="cmd"><span class="prompt">$</span> git branch -vv             <span class="cmt"># ver tracking branches</span>
+<span class="out">* main   3a8f2b1 [origin/main] Adiciona README
+  hotfix 9c8d1a2 [origin/hotfix: ahead 2] Corrige bug</span>
+
+<span class="prompt">$</span> git checkout --track origin/feature   <span class="cmt"># criar tracking branch local</span></div>
+
+      <h3>Primeiro Envio ao GitHub</h3>
+      <p>Fluxo completo para subir um projeto novo:</p>
+      <div class="cmd"><span class="cmt"># 1. Inicializar e fazer primeiro commit</span>
+<span class="prompt">$</span> git init
+<span class="prompt">$</span> git add .
+<span class="prompt">$</span> git commit -m "Initial commit"
+
+<span class="cmt"># 2. Criar repositório no GitHub (via web), depois:</span>
+<span class="prompt">$</span> git remote add origin git@github.com:usuario/repo.git
+<span class="prompt">$</span> git branch -M main
+<span class="prompt">$</span> git push -u origin main</div>
+
+    </div>
+
+    <!-- Quiz 4 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 4</h3>
+
+      <div class="quiz-item">
+        <p>1. Qual é a diferença entre <code>git fetch</code> e <code>git pull</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(4,1,this,false)">Não há diferença; são sinônimos</button>
+          <button class="opt-btn" onclick="verify(4,1,this,true)"><code>git fetch</code> apenas baixa os dados; <code>git pull</code> baixa e já faz o merge na branch atual</button>
+          <button class="opt-btn" onclick="verify(4,1,this,false)"><code>git fetch</code> envia commits; <code>git pull</code> recebe commits</button>
+          <button class="opt-btn" onclick="verify(4,1,this,false)"><code>git fetch</code> funciona com SSH; <code>git pull</code> com HTTPS</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Como adicionar um remote chamado <code>origin</code> apontando para um repositório SSH?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(4,2,this,false)">git remote origin git@github.com:user/repo.git</button>
+          <button class="opt-btn" onclick="verify(4,2,this,true)">git remote add origin git@github.com:user/repo.git</button>
+          <button class="opt-btn" onclick="verify(4,2,this,false)">git connect origin git@github.com:user/repo.git</button>
+          <button class="opt-btn" onclick="verify(4,2,this,false)">git push --add origin git@github.com:user/repo.git</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Você fez commits locais e quer enviá-los ao remoto, configurando tracking ao mesmo tempo. Qual comando usar?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(4,3,this,false)">git push origin main</button>
+          <button class="opt-btn" onclick="verify(4,3,this,false)">git push --track origin main</button>
+          <button class="opt-btn" onclick="verify(4,3,this,true)">git push -u origin main</button>
+          <button class="opt-btn" onclick="verify(4,3,this,false)">git remote push main</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. O que o <code>git clone</code> faz automaticamente além de baixar os arquivos?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(4,4,this,false)">Apenas baixa os arquivos da branch main</button>
+          <button class="opt-btn" onclick="verify(4,4,this,true)">Inicializa .git, baixa todo histórico, faz checkout da branch padrão e cria o remote <code>origin</code></button>
+          <button class="opt-btn" onclick="verify(4,4,this,false)">Cria um fork do repositório no GitHub</button>
+          <button class="opt-btn" onclick="verify(4,4,this,false)">Cria automaticamente uma branch local para cada branch remota</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Como deletar a branch remota <code>feature/x</code> no origin?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(4,5,this,false)">git branch -d origin/feature/x</button>
+          <button class="opt-btn" onclick="verify(4,5,this,false)">git remote remove feature/x</button>
+          <button class="opt-btn" onclick="verify(4,5,this,true)">git push origin --delete feature/x</button>
+          <button class="opt-btn" onclick="verify(4,5,this,false)">git fetch origin --remove feature/x</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn4" onclick="checkComplete(4)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 5 -->
+  <section class="module" id="mod5">
+    <div class="mod-title">
+      <div class="num">5</div>
+      <h2>Desfazendo Coisas</h2>
+      <span class="badge" id="badge5">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Emendando o Último Commit</h3>
+      <p>Se você esqueceu um arquivo ou errou a mensagem no último commit:</p>
+      <div class="cmd"><span class="prompt">$</span> git add arquivo-esquecido.c
+<span class="prompt">$</span> git commit --amend -m <span class="flag">"Mensagem corrigida"</span>
+<span class="cmt"># O commit anterior é substituído — use apenas se ainda não fez push!</span></div>
+      <div class="warn-box"><strong>Cuidado com --amend após push:</strong> Amend reescreve o histórico. Se o commit já foi publicado num remoto compartilhado, isso força quem clonou a fazer rebase. Evite amend em commits já publicados.</div>
+
+      <h3>Desfazendo o Stage — git restore</h3>
+      <div class="cmd"><span class="prompt">$</span> git restore --staged main.c    <span class="cmt"># remove do stage, mantém edições</span>
+<span class="cmt"># Equivalente antigo (ainda funciona):</span>
+<span class="prompt">$</span> git reset HEAD main.c</div>
+
+      <h3>Descartando Edições — git restore</h3>
+      <div class="cmd"><span class="prompt">$</span> git restore main.c       <span class="cmt"># DESCARTA edições não staged — IRREVERSÍVEL</span>
+<span class="cmt"># Equivalente antigo:</span>
+<span class="prompt">$</span> git checkout -- main.c</div>
+      <div class="warn-box"><strong>Atenção:</strong> Mudanças não commitadas no Git podem ser difíceis ou impossíveis de recuperar. Use <code>git restore &lt;arquivo&gt;</code> com cuidado.</div>
+
+      <h3>git reset — Três Modos</h3>
+      <table class="git-table">
+        <tr><th>Modo</th><th>Comando</th><th>HEAD move?</th><th>Stage limpo?</th><th>Working tree limpa?</th></tr>
+        <tr><td><code>--soft</code></td><td>git reset --soft HEAD~1</td><td>✓</td><td>✗</td><td>✗</td></tr>
+        <tr><td><code>--mixed</code> (padrão)</td><td>git reset HEAD~1</td><td>✓</td><td>✓</td><td>✗</td></tr>
+        <tr><td><code>--hard</code></td><td>git reset --hard HEAD~1</td><td>✓</td><td>✓</td><td>✓ (perda!)</td></tr>
+      </table>
+      <div class="cmd"><span class="cmt"># Desfazer último commit, manter arquivos no stage</span>
+<span class="prompt">$</span> git reset --soft HEAD~1
+
+<span class="cmt"># Desfazer último commit, tirar do stage, manter edições no disco</span>
+<span class="prompt">$</span> git reset HEAD~1
+
+<span class="cmt"># PERIGO: Desfazer e descartar tudo — voltando ao estado do commit</span>
+<span class="prompt">$</span> git reset --hard HEAD~1</div>
+
+      <h3>git revert — Desfazer Sem Reescrever Histórico</h3>
+      <p><code>git revert</code> cria um <em>novo commit</em> que desfaz as mudanças de um commit anterior. É o modo seguro para desfazer em repositórios compartilhados.</p>
+      <div class="cmd"><span class="prompt">$</span> git revert a1b2c3d     <span class="cmt"># cria commit que desfaz a1b2c3d</span>
+<span class="prompt">$</span> git revert HEAD        <span class="cmt"># desfaz o último commit</span>
+<span class="prompt">$</span> git revert HEAD~3..HEAD  <span class="cmt"># desfaz os últimos 3 commits</span></div>
+      <div class="git-box"><strong>reset vs revert:</strong> Use <code>reset</code> para desfazer commits locais ainda não publicados. Use <code>revert</code> para desfazer commits já enviados ao remoto compartilhado.</div>
+
+      <h3>Guardando Mudanças Temporariamente — git stash</h3>
+      <p>Você está no meio de um trabalho, precisa mudar de branch urgentemente, mas não quer commitar algo incompleto.</p>
+      <div class="cmd"><span class="prompt">$</span> git stash                  <span class="cmt"># salva working tree + stage</span>
+<span class="prompt">$</span> git stash push -m "wip: sensor"  <span class="cmt"># com mensagem descritiva</span>
+<span class="prompt">$</span> git stash list             <span class="cmt"># listar stashes</span>
+<span class="out">stash@{0}: On main: wip: sensor
+stash@{1}: WIP on feature: a3b4c5 add pid</span>
+<span class="prompt">$</span> git stash pop              <span class="cmt"># restaura o mais recente e remove da lista</span>
+<span class="prompt">$</span> git stash apply stash@{1}  <span class="cmt"># restaura específico sem remover</span>
+<span class="prompt">$</span> git stash drop stash@{1}   <span class="cmt"># remove da lista</span>
+<span class="prompt">$</span> git stash clear            <span class="cmt"># remove todos os stashes</span></div>
+
+    </div>
+
+    <!-- Quiz 5 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 5</h3>
+
+      <div class="quiz-item">
+        <p>1. Você commitou com a mensagem errada e ainda não fez push. Como corrigir apenas a mensagem?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(5,1,this,false)">git commit -m "nova mensagem" --force</button>
+          <button class="opt-btn" onclick="verify(5,1,this,true)">git commit --amend -m "nova mensagem"</button>
+          <button class="opt-btn" onclick="verify(5,1,this,false)">git reset HEAD && git commit -m "nova mensagem"</button>
+          <button class="opt-btn" onclick="verify(5,1,this,false)">git reword HEAD</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Qual comando desfaz o último commit mas <strong>mantém as alterações no disco</strong> (working tree intacta, fora do stage)?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(5,2,this,false)">git reset --soft HEAD~1</button>
+          <button class="opt-btn" onclick="verify(5,2,this,true)">git reset HEAD~1  (modo --mixed, padrão)</button>
+          <button class="opt-btn" onclick="verify(5,2,this,false)">git reset --hard HEAD~1</button>
+          <button class="opt-btn" onclick="verify(5,2,this,false)">git revert HEAD~1</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Você quer desfazer um commit que já foi publicado no remoto compartilhado, sem reescrever o histórico. Qual comando usar?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(5,3,this,false)">git reset --hard &lt;hash&gt; seguido de git push --force</button>
+          <button class="opt-btn" onclick="verify(5,3,this,true)">git revert &lt;hash&gt;</button>
+          <button class="opt-btn" onclick="verify(5,3,this,false)">git commit --amend</button>
+          <button class="opt-btn" onclick="verify(5,3,this,false)">git branch -D main</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. O que <code>git stash pop</code> faz?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(5,4,this,false)">Lista todos os stashes salvos</button>
+          <button class="opt-btn" onclick="verify(5,4,this,false)">Salva as mudanças atuais num stash</button>
+          <button class="opt-btn" onclick="verify(5,4,this,true)">Restaura o stash mais recente e o remove da lista</button>
+          <button class="opt-btn" onclick="verify(5,4,this,false)">Deleta todos os stashes sem restaurá-los</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Como remover <code>main.c</code> do stage <em>sem</em> descartar as edições no disco?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(5,5,this,false)">git restore main.c</button>
+          <button class="opt-btn" onclick="verify(5,5,this,true)">git restore --staged main.c</button>
+          <button class="opt-btn" onclick="verify(5,5,this,false)">git rm --cached main.c</button>
+          <button class="opt-btn" onclick="verify(5,5,this,false)">git reset --hard main.c</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn5" onclick="checkComplete(5)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 6 -->
+  <section class="module" id="mod6">
+    <div class="mod-title">
+      <div class="num">6</div>
+      <h2>Rebase, Tags e Aliases</h2>
+      <span class="badge" id="badge6">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Rebase — Histórico Linear</h3>
+      <p>O <code>rebase</code> é a segunda forma de integrar branches. Em vez de criar um merge commit, ele <em>reaplica</em> seus commits sobre a ponta da outra branch, criando um histórico linear.</p>
+      <div class="diag"><span class="hi">Situação inicial:</span>
+  C0─C1─C2─C4  ◀── main
+         └─C3─C5  ◀── feature
+
+<span class="hi">Após: git checkout feature &amp;&amp; git rebase main</span>
+  C0─C1─C2─C4─C3'─C5'  ◀── feature
+              ↑
+              (C3 e C5 são reescritos com novo hash)</div>
+
+      <div class="cmd"><span class="prompt">$</span> git checkout feature
+<span class="prompt">$</span> git rebase main          <span class="cmt"># reaplica commits de feature sobre main</span>
+
+<span class="prompt">$</span> git checkout main
+<span class="prompt">$</span> git merge feature        <span class="cmt"># agora é fast-forward — histórico linear!</span></div>
+
+      <h4>Merge vs Rebase</h4>
+      <table class="git-table">
+        <tr><th>Aspecto</th><th>Merge</th><th>Rebase</th></tr>
+        <tr><td>Histórico</td><td>Preserva tudo (ramificações visíveis)</td><td>Linear, mais limpo</td></tr>
+        <tr><td>Hashes</td><td>Commits originais preservados</td><td>Commits reescritos (novos hashes)</td></tr>
+        <tr><td>Segurança</td><td>Seguro em remoto compartilhado</td><td>Nunca rebase commits já publicados</td></tr>
+        <tr><td>Uso típico</td><td>Feature → main, hotfix</td><td>Atualizar feature com main antes do PR</td></tr>
+      </table>
+
+      <div class="warn-box"><strong>A Regra de Ouro do Rebase:</strong> Nunca faça rebase de commits que existem fora do seu repositório local. Se alguém já baseou trabalho nos commits que você vai reescrever, haverá problemas graves.</div>
+
+      <h3>Tags — Marcando Versões</h3>
+      <p>Tags são ponteiros estáticos para commits específicos — usados para marcar releases como <code>v1.0</code>, <code>v2.3.1</code>.</p>
+
+      <h4>Tags Anotadas (recomendadas)</h4>
+      <div class="cmd"><span class="prompt">$</span> git tag -a v1.0 -m <span class="flag">"Versão 1.0 — lançamento inicial"</span>
+<span class="prompt">$</span> git tag -a v1.2 9fceb02   <span class="cmt"># tag em commit específico (hash parcial)</span>
+<span class="prompt">$</span> git show v1.0             <span class="cmt"># ver detalhes da tag</span></div>
+
+      <h4>Tags Leves</h4>
+      <div class="cmd"><span class="prompt">$</span> git tag v1.4-lw           <span class="cmt"># apenas o checksum do commit</span></div>
+
+      <h4>Gerenciando Tags</h4>
+      <div class="cmd"><span class="prompt">$</span> git tag                   <span class="cmt"># listar tags</span>
+<span class="prompt">$</span> git tag -l "v1.*"        <span class="cmt"># filtrar por padrão</span>
+<span class="prompt">$</span> git push origin v1.0     <span class="cmt"># enviar tag específica</span>
+<span class="prompt">$</span> git push origin --tags   <span class="cmt"># enviar todas as tags</span>
+<span class="prompt">$</span> git tag -d v1.4-lw       <span class="cmt"># deletar localmente</span>
+<span class="prompt">$</span> git push origin --delete v1.4-lw   <span class="cmt"># deletar no remoto</span>
+<span class="prompt">$</span> git checkout v2.0.0      <span class="cmt"># "detached HEAD" — cuidado!</span>
+<span class="prompt">$</span> git checkout -b v2-fix v2.0.0  <span class="cmt"># criar branch a partir de tag</span></div>
+      <div class="git-box"><strong>Dica:</strong> Por padrão <code>git push</code> NÃO envia tags. Você precisa fazer isso explicitamente com <code>git push origin --tags</code> ou <code>git push origin &lt;tagname&gt;</code>.</div>
+
+      <h3>Aliases — Seus Atalhos Personalizados</h3>
+      <p>Configure aliases para comandos que você usa com frequência:</p>
+      <div class="cmd"><span class="prompt">$</span> git config --global alias.co checkout
+<span class="prompt">$</span> git config --global alias.br branch
+<span class="prompt">$</span> git config --global alias.ci commit
+<span class="prompt">$</span> git config --global alias.st status
+
+<span class="cmt"># Alias para um comando mais complexo</span>
+<span class="prompt">$</span> git config --global alias.unstage <span class="flag">'reset HEAD --'</span>
+<span class="prompt">$</span> git unstage main.c    <span class="cmt"># equivale a: git reset HEAD -- main.c</span>
+
+<span class="prompt">$</span> git config --global alias.last <span class="flag">'log -1 HEAD'</span>
+<span class="prompt">$</span> git last              <span class="cmt"># mostra o último commit</span>
+
+<span class="cmt"># Alias que chama comando externo (prefixo !)</span>
+<span class="prompt">$</span> git config --global alias.visual <span class="flag">'!gitk'</span>
+
+<span class="cmt"># Alias muito útil para histórico visual</span>
+<span class="prompt">$</span> git config --global alias.lg \
+  <span class="flag">'log --oneline --graph --all --decorate'</span></div>
+
+    </div>
+
+    <!-- Quiz 6 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 6</h3>
+
+      <div class="quiz-item">
+        <p>1. Qual é a principal diferença prática entre <code>git merge</code> e <code>git rebase</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(6,1,this,false)">Merge é mais rápido; rebase é mais seguro</button>
+          <button class="opt-btn" onclick="verify(6,1,this,true)">Merge preserva o histórico com commit de merge; rebase reescreve commits criando histórico linear</button>
+          <button class="opt-btn" onclick="verify(6,1,this,false)">Rebase só funciona em repositórios locais; merge funciona com remotos</button>
+          <button class="opt-btn" onclick="verify(6,1,this,false)">Merge reescreve hashes; rebase preserva os hashes originais</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Como criar uma tag anotada <code>v2.0</code> com uma mensagem?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(6,2,this,false)">git tag v2.0</button>
+          <button class="opt-btn" onclick="verify(6,2,this,false)">git tag --annotated v2.0 "Versão 2.0"</button>
+          <button class="opt-btn" onclick="verify(6,2,this,true)">git tag -a v2.0 -m "Versão 2.0"</button>
+          <button class="opt-btn" onclick="verify(6,2,this,false)">git release v2.0 -m "Versão 2.0"</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Você faz <code>git tag v1.5</code> e depois <code>git push origin main</code>. A tag foi para o remoto?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(6,3,this,false)">Sim, git push sempre envia tags junto com os commits</button>
+          <button class="opt-btn" onclick="verify(6,3,this,true)">Não — tags precisam ser enviadas explicitamente com <code>git push origin v1.5</code> ou <code>git push origin --tags</code></button>
+          <button class="opt-btn" onclick="verify(6,3,this,false)">Apenas tags anotadas são enviadas automaticamente</button>
+          <button class="opt-btn" onclick="verify(6,3,this,false)">Sim, mas somente se a tag for leve (lightweight)</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. Como criar um alias <code>git lg</code> para <code>git log --oneline --graph --all</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(6,4,this,false)">git alias lg "log --oneline --graph --all"</button>
+          <button class="opt-btn" onclick="verify(6,4,this,true)">git config --global alias.lg 'log --oneline --graph --all'</button>
+          <button class="opt-btn" onclick="verify(6,4,this,false)">git shortcut --global lg log --oneline --graph --all</button>
+          <button class="opt-btn" onclick="verify(6,4,this,false)">git config alias.lg log --oneline --graph --all</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Qual é a Regra de Ouro do Rebase?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(6,5,this,false)">Sempre use rebase em vez de merge para manter o histórico limpo</button>
+          <button class="opt-btn" onclick="verify(6,5,this,false)">Nunca faça rebase na branch main — apenas em branches de feature</button>
+          <button class="opt-btn" onclick="verify(6,5,this,true)">Nunca faça rebase de commits que já existem fora do seu repositório local (já publicados)</button>
+          <button class="opt-btn" onclick="verify(6,5,this,false)">Faça rebase apenas com arquivos de texto, não com binários</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn6" onclick="checkComplete(6)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MOD 7 -->
+  <section class="module" id="mod7">
+    <div class="mod-title">
+      <div class="num">7</div>
+      <h2>Fluxo em Equipe e Boas Práticas</h2>
+      <span class="badge" id="badge7">5 questões</span>
+    </div>
+    <div class="content-block">
+
+      <h3>Fluxos de Trabalho com Git</h3>
+      <p>O Git não impõe um fluxo único. A comunidade convergiu em alguns padrões:</p>
+
+      <h4>Feature Branch Workflow</h4>
+      <p>Todo desenvolvimento ocorre em branches isoladas. <code>main</code> (ou <code>master</code>) nunca recebe commits diretos.</p>
+      <div class="cmd"><span class="cmt"># Desenvolvedor começa uma nova feature</span>
+<span class="prompt">$</span> git checkout main
+<span class="prompt">$</span> git pull
+<span class="prompt">$</span> git checkout -b feature/sensor-ultrasonico
+<span class="prompt">$</span> <span class="cmt"># ... desenvolver ...</span>
+<span class="prompt">$</span> git push -u origin feature/sensor-ultrasonico
+<span class="cmt"># Abrir Pull Request no GitHub → code review → merge</span></div>
+
+      <h4>Fork &amp; Pull Request (projetos open-source)</h4>
+      <ol class="content-block ol" style="padding-left:22px;margin-bottom:14px;">
+        <li>Fork do repositório original na sua conta</li>
+        <li>Clone do seu fork localmente</li>
+        <li>Crie uma branch, faça as mudanças e commit</li>
+        <li>Push para o seu fork</li>
+        <li>Abra um Pull Request do seu fork para o repo original</li>
+        <li>Dono do repo faz review, discute, e aceita o merge</li>
+      </ol>
+      <div class="cmd"><span class="prompt">$</span> git remote add upstream git@github.com:original/repo.git
+<span class="prompt">$</span> git fetch upstream
+<span class="prompt">$</span> git rebase upstream/main   <span class="cmt"># manter fork atualizado</span></div>
+
+      <h3>Boas Mensagens de Commit</h3>
+      <p>Uma boa mensagem de commit é tão importante quanto o código. Facilita o <code>git log</code>, bisect e revisão de código.</p>
+      <div class="git-box">
+        <strong>Estrutura recomendada:</strong><br><br>
+        Linha 1 (assunto): verbo no imperativo, ≤ 72 caracteres<br>
+        Linha 2: em branco<br>
+        Linhas 3+: corpo — explica o <em>porquê</em>, não o <em>o quê</em><br><br>
+        ✓ <code>Adiciona suporte a sensor HC-SR04</code><br>
+        ✓ <code>Corrige overflow no acumulador do PID</code><br>
+        ✗ <code>fix</code>  ✗ <code>wip</code>  ✗ <code>changes</code>
+      </div>
+
+      <h3>Comandos para Inspecionar o Histórico</h3>
+      <div class="cmd"><span class="prompt">$</span> git log --oneline --graph --all --decorate
+<span class="out">* 9e4b2c1 (HEAD -> main) Corrige leitura do encoder
+* 3a8f2b1 (origin/main) Adiciona PID
+| * f1d8c2e (feature/sensor) WIP sensor ultrasonico
+|/
+* 7c3d4a5 Initial commit</span>
+
+<span class="prompt">$</span> git log -S "PIDController"  <span class="cmt"># commits que introduziram/removeram essa string</span>
+<span class="prompt">$</span> git log --follow -p -- motor.c  <span class="cmt"># histórico de um arquivo específico</span>
+<span class="prompt">$</span> git blame motor.c           <span class="cmt"># quem escreveu cada linha</span>
+<span class="prompt">$</span> git show a1b2c3d            <span class="cmt"># detalhes de um commit específico</span></div>
+
+      <h3>Bisect — Encontrando o Commit do Bug</h3>
+      <p>Se um bug apareceu em algum momento, <code>git bisect</code> faz busca binária na história:</p>
+      <div class="cmd"><span class="prompt">$</span> git bisect start
+<span class="prompt">$</span> git bisect bad                  <span class="cmt"># HEAD tem o bug</span>
+<span class="prompt">$</span> git bisect good v1.0            <span class="cmt"># v1.0 estava ok</span>
+<span class="out">Bisecting: 16 revisions left to test after this (roughly 4 steps)</span>
+<span class="cmt"># Git muda para commit do meio — teste manualmente</span>
+<span class="prompt">$</span> git bisect good                 <span class="cmt"># ou git bisect bad</span>
+<span class="cmt"># Repita até encontrar o commit culpado</span>
+<span class="prompt">$</span> git bisect reset               <span class="cmt"># volta ao HEAD</span></div>
+
+      <h3>Cherry-pick — Importar Commit Específico</h3>
+      <div class="cmd"><span class="prompt">$</span> git cherry-pick a1b2c3d   <span class="cmt"># aplica um commit de outra branch na atual</span></div>
+
+      <h3>Resumo dos Comandos Essenciais</h3>
+      <table class="git-table">
+        <tr><th>Categoria</th><th>Comandos</th></tr>
+        <tr><td>Configurar</td><td><code>git config</code>, <code>git help</code></td></tr>
+        <tr><td>Iniciar</td><td><code>git init</code>, <code>git clone</code></td></tr>
+        <tr><td>Snapshot</td><td><code>git add</code>, <code>git status</code>, <code>git diff</code>, <code>git commit</code>, <code>git rm</code>, <code>git mv</code></td></tr>
+        <tr><td>Branch/Merge</td><td><code>git branch</code>, <code>git checkout</code>, <code>git switch</code>, <code>git merge</code>, <code>git rebase</code>, <code>git log</code></td></tr>
+        <tr><td>Remoto</td><td><code>git fetch</code>, <code>git pull</code>, <code>git push</code>, <code>git remote</code></td></tr>
+        <tr><td>Desfazer</td><td><code>git reset</code>, <code>git revert</code>, <code>git restore</code>, <code>git stash</code></td></tr>
+        <tr><td>Inspecionar</td><td><code>git log</code>, <code>git blame</code>, <code>git bisect</code>, <code>git show</code></td></tr>
+        <tr><td>Releases</td><td><code>git tag</code></td></tr>
+      </table>
+
+    </div>
+
+    <!-- Quiz 7 -->
+    <div class="quiz-section">
+      <h3>Exercícios — Módulo 7</h3>
+
+      <div class="quiz-item">
+        <p>1. No Feature Branch Workflow, o que acontece com <code>main</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(7,1,this,false)">Todo desenvolvimento acontece diretamente em main</button>
+          <button class="opt-btn" onclick="verify(7,1,this,true)">main nunca recebe commits diretos — todo trabalho ocorre em branches separadas que são mergeadas via PR</button>
+          <button class="opt-btn" onclick="verify(7,1,this,false)">main é deletada após cada release e recriada do zero</button>
+          <button class="opt-btn" onclick="verify(7,1,this,false)">main é usada apenas para hotfixes urgentes</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>2. Qual comando exibe o histórico de forma gráfica mostrando todas as branches?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(7,2,this,false)">git log --visual --branches</button>
+          <button class="opt-btn" onclick="verify(7,2,this,true)">git log --oneline --graph --all --decorate</button>
+          <button class="opt-btn" onclick="verify(7,2,this,false)">git tree --all</button>
+          <button class="opt-btn" onclick="verify(7,2,this,false)">git show --graph</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>3. Qual é uma boa prática para a linha de assunto de uma mensagem de commit?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(7,3,this,false)">Descrever em detalhes todos os arquivos modificados</button>
+          <button class="opt-btn" onclick="verify(7,3,this,false)">Usar palavras como "fix", "wip", "update" sem contexto</button>
+          <button class="opt-btn" onclick="verify(7,3,this,true)">Usar verbo no imperativo, ≤ 72 caracteres, explicando o quê e porquê</button>
+          <button class="opt-btn" onclick="verify(7,3,this,false)">Sempre incluir o número do ticket Jira no início</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>4. Para que serve <code>git bisect</code>?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(7,4,this,false)">Para dividir um commit grande em commits menores</button>
+          <button class="opt-btn" onclick="verify(7,4,this,false)">Para separar uma branch em duas</button>
+          <button class="opt-btn" onclick="verify(7,4,this,true)">Para encontrar por busca binária qual commit introduziu um bug</button>
+          <button class="opt-btn" onclick="verify(7,4,this,false)">Para comparar dois arquivos de branches diferentes</button>
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <p>5. Qual comando aplica <strong>um commit específico</strong> de outra branch na branch atual?</p>
+        <div class="options">
+          <button class="opt-btn" onclick="verify(7,5,this,false)">git merge --single &lt;hash&gt;</button>
+          <button class="opt-btn" onclick="verify(7,5,this,false)">git apply &lt;hash&gt;</button>
+          <button class="opt-btn" onclick="verify(7,5,this,true)">git cherry-pick &lt;hash&gt;</button>
+          <button class="opt-btn" onclick="verify(7,5,this,false)">git import &lt;hash&gt;</button>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="btn7" onclick="checkComplete(7)" disabled>Marcar módulo como concluído</button>
+    </div>
+  </section>
+
+</div><!-- .main -->
+
+<script>
+const TOTAL = 7;
+const answered = {}; // { '1_1': true, ... }
+const modAnswered = {}; // { 1: 0, ... }
+
+for (let i = 1; i <= TOTAL; i++) modAnswered[i] = 0;
+
+function verify(mod, qi, btn, correct) {
+  const key = `${mod}_${qi}`;
+  if (answered[key]) return;
+  answered[key] = true;
+  const parent = btn.closest('.options');
+  parent.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) {
+    parent.querySelectorAll('.opt-btn').forEach(b => {
+      b.onclick && b.onclick.toString().includes('true') && b.classList.add('correct');
+    });
+    // simpler: mark correct by scanning onclick
+    parent.querySelectorAll('.opt-btn').forEach(b => {
+      const fn = b.getAttribute('onclick') || '';
+      if (fn.includes(',true)')) b.classList.add('correct');
+    });
+  }
+  modAnswered[mod] = (modAnswered[mod] || 0) + 1;
+  if (modAnswered[mod] >= 5) {
+    document.getElementById('btn' + mod).disabled = false;
+  }
+}
+
+function checkComplete(mod) {
+  localStorage.setItem(`tc_git_mod${mod}`, 'done');
+  document.getElementById('btn' + mod).textContent = '✓ Módulo concluído!';
+  document.getElementById('btn' + mod).disabled = true;
+  document.getElementById('badge' + mod).textContent = 'Concluído ✓';
+  document.getElementById('badge' + mod).classList.add('done-badge');
+  document.getElementById('sl-' + mod).classList.add('done');
+  updateUI();
+}
+
+function updateUI() {
+  let done = 0;
+  for (let i = 1; i <= TOTAL; i++) {
+    if (localStorage.getItem(`tc_git_mod${i}`) === 'done') {
+      done++;
+      document.getElementById('sl-' + i).classList.add('done');
+      document.getElementById('badge' + i).textContent = 'Concluído ✓';
+      document.getElementById('badge' + i).classList.add('done-badge');
+      document.getElementById('btn' + i).textContent = '✓ Módulo concluído!';
+      document.getElementById('btn' + i).disabled = true;
+    }
+  }
+  document.getElementById('side-prog').style.width = (done / TOTAL * 100) + '%';
+  document.getElementById('side-lbl').textContent = `${done} / ${TOTAL} módulos concluídos`;
+}
+
+// Active sidebar link on scroll
+const mods = document.querySelectorAll('.module');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id.replace('mod', '');
+      document.querySelectorAll('.mod-link').forEach(l => l.classList.remove('active'));
+      const sl = document.getElementById('sl-' + id);
+      if (sl) sl.classList.add('active');
+    }
+  });
+}, { threshold: 0.25 });
+mods.forEach(m => observer.observe(m));
+
+updateUI();
+</script>
+</body>
+</html>
