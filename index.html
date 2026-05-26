@@ -139,6 +139,21 @@
     transition: opacity .2s, transform .15s;
   }
   .cta-btn:hover { opacity: .88; transform: scale(1.03); }
+  .cta-btn-quiz {
+    display: inline-block;
+    margin-top: 10px;
+    margin-left: 10px;
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--orange);
+    font-weight: 700;
+    font-size: .9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid rgba(255,106,0,.4);
+    transition: background .2s, border-color .2s;
+  }
+  .cta-btn-quiz:hover { background: rgba(255,106,0,.1); border-color: var(--orange); }
 
   footer {
     text-align: center;
@@ -197,6 +212,7 @@
       <div class="prog-bar"><div class="prog-bar-fill" id="prog-c"></div></div>
       <div class="prog-label" id="prog-c-lbl">0 / 8 módulos concluídos</div>
       <span class="cta-btn">Iniciar Trilha →</span>
+      <a class="cta-btn-quiz" href="trilha-questoes-c.html" onclick="event.stopPropagation()">Banco de Questões</a>
     </a>
 
     <a class="card" href="trilha-cpp.html">
@@ -210,6 +226,7 @@
       <div class="prog-bar"><div class="prog-bar-fill" id="prog-cpp"></div></div>
       <div class="prog-label" id="prog-cpp-lbl">0 / 5 módulos concluídos</div>
       <span class="cta-btn">Iniciar Trilha →</span>
+      <a class="cta-btn-quiz" href="trilha-questoes-cpp.html" onclick="event.stopPropagation()">Banco de Questões</a>
     </a>
 
     <a class="card" href="trilha-git.html" style="--card-accent:#43a047;">

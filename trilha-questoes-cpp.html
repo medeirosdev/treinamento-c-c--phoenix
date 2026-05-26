@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco de Questões C++ — Phoenix Unicamp</title>
+<style>
+:root {
+  --bg: #080600; --surface: #110e00; --surface2: #1a1500;
+  --orange: #ff6a00; --gold: #ffaa00; --text: #f0ece0;
+  --muted: #7a6a50; --border: rgba(255,106,0,0.18);
+  --green: #4caf50; --red: #f44336;
+  --t1: #7c4dff; --t2: #00bcd4; --t3: #ff6a00;
+  --lv1: #4caf50; --lv2: #ffaa00; --lv3: #ff6a00;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+nav {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 40px; border-bottom: 1px solid var(--border);
+  background: rgba(8,6,0,.9); backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 100;
+}
+nav .brand { font-size: 1rem; font-weight: 700; color: var(--orange); }
+nav .sub { font-size: .75rem; color: var(--muted); }
+nav a { margin-left: auto; color: var(--orange); text-decoration: none; font-size: .82rem; }
+
+.view { display: none; }
+.view.active { display: block; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.home-hero { text-align: center; padding: 60px 20px 36px; }
+.home-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; }
+.home-hero h1 span { color: var(--orange); }
+.home-hero p { margin-top: 12px; color: var(--muted); font-size: 1rem; max-width: 520px; margin-inline: auto; }
+
+.topic-grid { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; padding: 24px 24px 80px; max-width: 1100px; margin: 0 auto; }
+
+.topic-card {
+  background: var(--surface); border-radius: 16px; padding: 32px 28px 28px;
+  width: 320px; cursor: pointer; border: 1px solid var(--border);
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  position: relative; overflow: hidden;
+}
+.topic-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
+.topic-card.t1::before { background: linear-gradient(90deg, var(--t1), #b388ff); }
+.topic-card.t2::before { background: linear-gradient(90deg, var(--t2), #4dd0e1); }
+.topic-card.t3::before { background: linear-gradient(90deg, var(--t3), var(--gold)); }
+.topic-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.4); }
+.topic-card.t1:hover { border-color: var(--t1); }
+.topic-card.t2:hover { border-color: var(--t2); }
+.topic-card.t3:hover { border-color: var(--t3); }
+
+.topic-icon { font-size: 2.4rem; margin-bottom: 14px; }
+.topic-card h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+.topic-card p { font-size: .85rem; color: var(--muted); line-height: 1.55; margin-bottom: 18px; }
+
+.level-pills { display: flex; gap: 8px; }
+.pill {
+  padding: 4px 14px; border-radius: 99px; font-size: .75rem; font-weight: 700;
+  border: 1px solid; opacity: .5;
+}
+.pill.done { opacity: 1; }
+.pill.lv1 { color: var(--lv1); border-color: var(--lv1); }
+.pill.lv2 { color: var(--lv2); border-color: var(--lv2); }
+.pill.lv3 { color: var(--lv3); border-color: var(--lv3); }
+.pill.done.lv1 { background: rgba(76,175,80,.15); }
+.pill.done.lv2 { background: rgba(255,170,0,.12); }
+.pill.done.lv3 { background: rgba(255,106,0,.12); }
+
+.level-select-wrap { max-width: 680px; margin: 0 auto; padding: 48px 24px; }
+.back-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 8px; padding: 7px 18px; font-size: .82rem; cursor: pointer;
+  margin-bottom: 32px; font-family: inherit; transition: border-color .15s, color .15s;
+}
+.back-btn:hover { border-color: var(--orange); color: var(--orange); }
+.level-select-wrap h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+.level-select-wrap .sub-desc { color: var(--muted); font-size: .9rem; margin-bottom: 36px; }
+
+.level-cards { display: flex; flex-direction: column; gap: 16px; }
+.level-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 22px 26px; cursor: pointer; display: flex; align-items: center; gap: 20px;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.level-card:hover { transform: translateX(5px); box-shadow: 0 6px 24px rgba(0,0,0,.3); }
+.level-card.lv1 { border-left: 4px solid var(--lv1); }
+.level-card.lv2 { border-left: 4px solid var(--lv2); }
+.level-card.lv3 { border-left: 4px solid var(--lv3); }
+.level-badge {
+  min-width: 48px; height: 48px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;
+}
+.level-card.lv1 .level-badge { background: rgba(76,175,80,.15); color: var(--lv1); }
+.level-card.lv2 .level-badge { background: rgba(255,170,0,.12); color: var(--lv2); }
+.level-card.lv3 .level-badge { background: rgba(255,106,0,.12); color: var(--lv3); }
+.level-card .level-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+.level-card .level-info p { font-size: .82rem; color: var(--muted); }
+.level-card .level-status { margin-left: auto; font-size: 1.2rem; }
+.level-card.done .level-status::after { content: '✓'; color: var(--green); font-weight: 800; }
+
+.quiz-wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+.quiz-header { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+.q-counter { font-size: .82rem; color: var(--muted); }
+.progress-bar { flex: 1; height: 6px; background: rgba(255,255,255,.07); border-radius: 6px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 6px; transition: width .4s ease; }
+.lv1-fill { background: linear-gradient(90deg, var(--lv1), #81c784); }
+.lv2-fill { background: linear-gradient(90deg, var(--lv2), #ffd54f); }
+.lv3-fill { background: linear-gradient(90deg, var(--lv3), var(--gold)); }
+
+.question-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px 30px 28px;
+}
+.q-topic-badge {
+  display: inline-block; padding: 2px 12px; border-radius: 99px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; margin-bottom: 18px;
+}
+.q-topic-badge.lv1 { background: rgba(76,175,80,.12); color: var(--lv1); border: 1px solid rgba(76,175,80,.3); }
+.q-topic-badge.lv2 { background: rgba(255,170,0,.1); color: var(--lv2); border: 1px solid rgba(255,170,0,.3); }
+.q-topic-badge.lv3 { background: rgba(255,106,0,.1); color: var(--lv3); border: 1px solid rgba(255,106,0,.3); }
+
+.question-text { font-size: 1rem; font-weight: 600; line-height: 1.65; margin-bottom: 18px; color: var(--text); }
+
+.code-block {
+  background: #0c0800; border: 1px solid rgba(255,106,0,.15);
+  border-left: 4px solid var(--orange); border-radius: 0 10px 10px 0;
+  padding: 16px 20px; margin-bottom: 20px; overflow-x: auto;
+  font-family: 'Consolas', 'Courier New', monospace; font-size: .84rem;
+  line-height: 1.75; color: #f0ece0; white-space: pre;
+}
+.code-block .kw { color: #ff9800; font-weight: 700; }
+.code-block .fn { color: #64b5f6; }
+.code-block .str { color: #a5d6a7; }
+.code-block .num { color: #ce93d8; }
+.code-block .cmt { color: #455a64; font-style: italic; }
+.code-block .op  { color: #ef9a9a; }
+.code-block .tp  { color: #80cbc4; }
+
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 18px; cursor: pointer;
+  font-size: .92rem; color: var(--text); text-align: left; font-family: inherit;
+  transition: background .12s, border-color .12s;
+  display: flex; align-items: center; gap: 12px;
+}
+.opt:hover:not(:disabled) { background: rgba(255,106,0,.08); border-color: var(--orange); }
+.opt .opt-key {
+  min-width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+}
+.opt.correct { background: rgba(76,175,80,.18); border-color: var(--green); }
+.opt.correct .opt-key { background: var(--green); border-color: var(--green); color: #000; }
+.opt.wrong { background: rgba(244,67,54,.12); border-color: var(--red); }
+.opt.wrong .opt-key { background: var(--red); border-color: var(--red); color: #fff; }
+
+.feedback {
+  margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: .88rem;
+  line-height: 1.55; display: none;
+}
+.feedback.show { display: block; }
+.feedback.correct-fb { background: rgba(76,175,80,.12); color: #a5d6a7; border: 1px solid rgba(76,175,80,.25); }
+.feedback.wrong-fb { background: rgba(244,67,54,.1); color: #ef9a9a; border: 1px solid rgba(244,67,54,.2); }
+
+.next-btn {
+  margin-top: 22px; padding: 11px 32px;
+  background: linear-gradient(135deg, var(--orange), var(--gold));
+  color: #000; font-weight: 700; font-size: .92rem;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: opacity .2s, transform .15s; display: none;
+}
+.next-btn.show { display: inline-block; }
+.next-btn:hover { opacity: .88; transform: scale(1.02); }
+
+.result-wrap { max-width: 580px; margin: 0 auto; padding: 60px 24px; text-align: center; }
+.score-ring {
+  width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 28px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; font-weight: 800;
+  border: 6px solid; position: relative;
+}
+.score-ring .score-num { font-size: 2.4rem; line-height: 1; }
+.score-ring .score-of { font-size: .8rem; color: var(--muted); }
+.score-ring.pass { border-color: var(--green); color: var(--green); background: rgba(76,175,80,.08); }
+.score-ring.warn { border-color: var(--gold); color: var(--gold); background: rgba(255,170,0,.08); }
+
+.result-wrap h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; }
+.result-wrap p { font-size: .95rem; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+.result-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.btn-primary {
+  padding: 11px 28px;
+  background: linear-gradient(135deg, var(--orange), var(--gold));
+  color: #000; font-weight: 700; font-size: .9rem;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: opacity .2s; font-family: inherit;
+}
+.btn-primary:hover { opacity: .88; }
+.btn-secondary {
+  padding: 11px 28px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-weight: 600; font-size: .9rem;
+  border-radius: 8px; cursor: pointer; font-family: inherit;
+  transition: border-color .15s;
+}
+.btn-secondary:hover { border-color: var(--orange); }
+
+.review-list { margin-top: 32px; text-align: left; }
+.review-item { background: var(--surface); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid; }
+.review-item.r-correct { border-color: var(--green); }
+.review-item.r-wrong { border-color: var(--red); }
+.review-item .r-q { font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+.review-item .r-ans { font-size: .8rem; color: var(--muted); }
+.review-item .r-ans span { color: var(--green); }
+.review-item .r-ans.wrong-ans span { color: var(--red); }
+
+@media (max-width: 600px) {
+  nav { padding: 14px 16px; }
+  .topic-card { width: 100%; }
+  .quiz-wrap, .level-select-wrap, .result-wrap { padding: 24px 16px 60px; }
+  .question-card { padding: 22px 18px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="brand">Banco de Questões — Linguagem C++</div>
+    <div class="sub">Phoenix Unicamp · 3 tópicos · 3 níveis cada</div>
+  </div>
+  <a href="index.html">← Índice</a>
+</nav>
+
+<!-- ═══════ VIEW: HOME ═══════ -->
+<div id="view-home" class="view active">
+  <div class="home-hero">
+    <h1>Questões de <span>C++</span></h1>
+    <p>Escolha um tópico e pratique no seu ritmo. Todos os níveis estão disponíveis desde o início.</p>
+  </div>
+  <div class="topic-grid" id="topic-grid"></div>
+</div>
+
+<!-- ═══════ VIEW: LEVEL SELECT ═══════ -->
+<div id="view-levels" class="view">
+  <div class="level-select-wrap">
+    <button class="back-btn" onclick="showHome()">← Voltar</button>
+    <h2 id="ls-title"></h2>
+    <p class="sub-desc" id="ls-desc"></p>
+    <div class="level-cards" id="level-cards-list"></div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW: QUIZ ═══════ -->
+<div id="view-quiz" class="view">
+  <div class="quiz-wrap">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="showLevels(currentTopic)" style="margin:0;padding:5px 14px">←</button>
+      <span class="q-counter" id="q-counter">1 / 5</span>
+      <div class="progress-bar"><div class="progress-fill" id="q-progress"></div></div>
+    </div>
+    <div class="question-card" id="question-card">
+      <div class="q-topic-badge" id="q-badge">NÍVEL 1</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="code-block" id="q-code" style="display:none"></div>
+      <div class="options-list" id="q-options"></div>
+      <div class="feedback" id="q-feedback"></div>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Próxima →</button>
+  </div>
+</div>
+
+<!-- ═══════ VIEW: RESULT ═══════ -->
+<div id="view-result" class="view">
+  <div class="result-wrap">
+    <div class="score-ring" id="r-ring">
+      <div class="score-num" id="r-score"></div>
+      <div class="score-of" id="r-of"></div>
+    </div>
+    <h2 id="r-title"></h2>
+    <p id="r-msg"></p>
+    <div class="result-actions">
+      <button class="btn-secondary" onclick="retryLevel()">Tentar novamente</button>
+      <button class="btn-primary" id="r-next-btn" onclick="nextLevel()"></button>
+    </div>
+    <div class="review-list" id="r-review"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────────────────────
+const TOPICS = [
+  {
+    id: 1, cls: 't1',
+    icon: '🧱',
+    title: 'Classes, Herança e Polimorfismo',
+    desc: 'Definição de classes, construtores, modificadores de acesso, herança pública, funções virtuais e polimorfismo.',
+    levels: [
+      {
+        id: 1, label: 'Nível 1', sublabel: 'Classes e objetos básicos',
+        questions: [
+          {
+            text: 'Qual keyword define uma classe em C++?',
+            options: ['object', 'struct', 'class', 'type'],
+            correct: 2,
+            fb: '`class` define uma classe. `struct` também pode, mas com membros públicos por padrão. Em C++, `class` torna membros privados por padrão.'
+          },
+          {
+            text: 'O que é um construtor?',
+            options: [
+              'Uma função que destrói o objeto ao sair de escopo',
+              'Uma função especial com o mesmo nome da classe, chamada automaticamente ao criar um objeto',
+              'Um método virtual obrigatório',
+              'Uma função estática da classe'
+            ],
+            correct: 1,
+            fb: 'O construtor inicializa o objeto. Tem o mesmo nome da classe, sem tipo de retorno, e é chamado automaticamente no momento da criação.'
+          },
+          {
+            text: 'Qual modificador de acesso torna os membros acessíveis somente dentro da própria classe?',
+            options: ['protected', 'public', 'internal', 'private'],
+            correct: 3,
+            fb: '`private` restringe o acesso à própria classe. `public` é acessível de qualquer lugar. `protected` é acessível pela classe e por subclasses.'
+          },
+          {
+            text: 'Como instanciar um objeto da classe `Motor` na pilha?',
+            options: ['Motor* m = new Motor();', 'Motor m();', 'Motor m;', 'create Motor m;'],
+            correct: 2,
+            fb: '`Motor m;` cria o objeto na pilha chamando o construtor padrão. `Motor* m = new Motor();` cria no heap (requer delete).'
+          },
+          {
+            text: 'O que o ponteiro `this` representa dentro de um método de instância?',
+            options: [
+              'O objeto base da hierarquia',
+              'Um ponteiro para o objeto atual que chamou o método',
+              'O construtor da classe',
+              'O tipo estático da classe'
+            ],
+            correct: 1,
+            fb: '`this` é um ponteiro implícito para o objeto sobre o qual o método foi chamado. Útil para diferenciar parâmetros de membros com o mesmo nome.'
+          }
+        ]
+      },
+      {
+        id: 2, label: 'Nível 2', sublabel: 'Herança e funções virtuais',
+        questions: [
+          {
+            text: 'Qual sintaxe declara que `Carro` herda publicamente de `Veiculo`?',
+            options: [
+              'class Carro extends Veiculo',
+              'class Carro : public Veiculo',
+              'class Carro inherits Veiculo',
+              'class Carro -> Veiculo'
+            ],
+            correct: 1,
+            fb: 'Em C++: `class Derivada : public Base`. O especificador `public` mantém os membros públicos da base como públicos na derivada.'
+          },
+          {
+            text: 'Se a classe derivada não chama explicitamente o construtor da base, o que acontece?',
+            options: [
+              'Erro de compilação',
+              'O construtor padrão da base é chamado automaticamente',
+              'Os membros da base ficam não inicializados',
+              'A herança é ignorada'
+            ],
+            correct: 1,
+            fb: 'Se não houver chamada explícita na lista de inicialização, o compilador insere `Base()` automaticamente. Se a base não tiver construtor padrão, há erro.'
+          },
+          {
+            text: 'Para que serve o keyword `virtual` em um método?',
+            options: [
+              'Torna o método privado na base',
+              'Permite que a classe derivada sobrescreva o comportamento com despacho dinâmico (polimorfismo em runtime)',
+              'Impede a herança do método',
+              'Cria uma cópia estática do método'
+            ],
+            correct: 1,
+            fb: '`virtual` habilita o despacho dinâmico: ao chamar o método via ponteiro/referência da base, a versão da classe concreta é executada.'
+          },
+          {
+            text: 'O que este código imprime?',
+            code: '<span class="kw">struct</span> <span class="tp">Animal</span> {\n    <span class="kw">virtual</span> <span class="kw">void</span> <span class="fn">falar</span>() { <span class="fn">printf</span>(<span class="str">"..."</span>); }\n};\n<span class="kw">struct</span> <span class="tp">Cachorro</span> : <span class="kw">public</span> <span class="tp">Animal</span> {\n    <span class="kw">void</span> <span class="fn">falar</span>() { <span class="fn">printf</span>(<span class="str">"Au"</span>); }\n};\n<span class="tp">Animal</span>* a = <span class="kw">new</span> <span class="tp">Cachorro</span>();\na-><span class="fn">falar</span>();',
+            options: ['...', 'Au', 'Erro de compilação', 'Comportamento indefinido'],
+            correct: 1,
+            fb: 'Como `falar` é virtual e `a` aponta para um `Cachorro`, o despacho dinâmico chama `Cachorro::falar()` → "Au".'
+          },
+          {
+            text: 'O que é uma classe abstrata em C++?',
+            options: [
+              'Uma classe sem atributos',
+              'Uma classe que não pode ser instanciada diretamente por conter ao menos uma função virtual pura',
+              'Uma classe com todos os membros privados',
+              'Uma classe definida com a keyword `abstract`'
+            ],
+            correct: 1,
+            fb: 'Classe abstrata contém pelo menos uma função virtual pura (`= 0`). Não pode ser instanciada diretamente — serve como interface.'
+          }
+        ]
+      },
+      {
+        id: 3, label: 'Nível 3', sublabel: 'Polimorfismo avançado e vtable',
+        questions: [
+          {
+            text: 'Qual é a sintaxe de uma função virtual pura?',
+            code: '<span class="kw">class</span> <span class="tp">Forma</span> {\n<span class="kw">public</span>:\n    <span class="kw">virtual</span> <span class="kw">double</span> <span class="fn">area</span>() ___;\n};',
+            options: ['= nullptr', '= abstract', '= 0', '{}'],
+            correct: 2,
+            fb: '`= 0` torna a função virtual pura. A classe passa a ser abstrata e não pode ser instanciada diretamente.'
+          },
+          {
+            text: 'Por que o destrutor da classe base deve ser `virtual`?',
+            options: [
+              'Para aumentar performance',
+              'Para garantir que o destrutor da classe derivada seja chamado ao deletar via ponteiro da base',
+              'Para impedir herança múltipla',
+              'Porque o padrão C++ exige em todas as classes'
+            ],
+            correct: 1,
+            fb: 'Sem `virtual ~Base()`, deletar um objeto derivado via `Base*` chama apenas o destrutor da base — vazamento de memória e comportamento indefinido.'
+          },
+          {
+            text: 'Qual o benefício do keyword `override` em C++11?',
+            options: [
+              'Aumenta a performance do despacho virtual',
+              'Avisa ao compilador que a função deve sobrescrever uma virtual da base — erro se não encontrar correspondência',
+              'Substitui a necessidade de `virtual` na base',
+              'Torna o método final, impedindo novas sobrescritas'
+            ],
+            correct: 1,
+            fb: '`override` faz o compilador verificar que a função realmente sobrescreve uma virtual. Evita bugs silenciosos por erros de assinatura.'
+          },
+          {
+            text: 'O que faz `final` quando aplicado a uma classe?',
+            options: [
+              'Torna todos os métodos virtuais',
+              'Impede que a classe seja herdada por outra classe',
+              'Marca a classe como deprecated',
+              'Aplica inline em todos os métodos'
+            ],
+            correct: 1,
+            fb: '`class MinhaClasse final { ... };` impede que outras classes herdem de `MinhaClasse`. Também pode ser aplicado a métodos virtuais específicos.'
+          },
+          {
+            text: 'O que é a vtable (tabela virtual)?',
+            options: [
+              'Uma tabela de variáveis globais da classe',
+              'Uma estrutura interna mantida pelo compilador com ponteiros para as implementações corretas de funções virtuais',
+              'Uma lista de construtores sobrecarregados',
+              'A seção de memória onde objetos são alocados'
+            ],
+            correct: 1,
+            fb: 'O compilador cria uma vtable por classe com funções virtuais. Cada objeto guarda um vptr apontando para a vtable da sua classe real — isso permite o despacho dinâmico.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 2, cls: 't2',
+    icon: '⚙️',
+    title: 'Templates, STL e Algoritmos',
+    desc: 'Templates de função e classe, std::vector, std::map, iteradores, std::sort e algoritmos da STL.',
+    levels: [
+      {
+        id: 1, label: 'Nível 1', sublabel: 'Templates básicos e contêineres essenciais',
+        questions: [
+          {
+            text: 'Qual é a sintaxe para declarar um template de função em C++?',
+            options: [
+              'generic<T> T soma(T a, T b)',
+              'template<typename T> T soma(T a, T b)',
+              'function<T>(T a, T b)',
+              'T soma<T>(T a, T b)'
+            ],
+            correct: 1,
+            fb: '`template<typename T>` precede a declaração. `T` é o parâmetro de tipo — pode ser qualquer tipo que suporte as operações usadas.'
+          },
+          {
+            text: 'Como adicionar um elemento ao final de um `std::vector<int> v`?',
+            options: ['v.add(42)', 'v.append(42)', 'v.push_back(42)', 'v.insert(42)'],
+            correct: 2,
+            fb: '`push_back` adiciona ao final. `emplace_back` também funciona e pode ser mais eficiente para objetos complexos.'
+          },
+          {
+            text: 'O que imprime este código?',
+            code: '<span class="tp">std::vector</span>&lt;<span class="kw">int</span>&gt; v = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>};\n<span class="kw">for</span> (<span class="kw">int</span> x : v)\n    <span class="fn">printf</span>(<span class="str">"%d "</span>, x);',
+            options: ['10 20 30', '30 20 10', 'Erro de compilação', '0 1 2'],
+            correct: 0,
+            fb: 'O range-based for percorre os elementos em ordem de inserção. Saída: 10 20 30.'
+          },
+          {
+            text: 'Como obter o número de elementos em `std::vector<int> v`?',
+            options: ['v.length()', 'v.count()', 'v.size()', 'sizeof(v)'],
+            correct: 2,
+            fb: '`v.size()` retorna o número de elementos como `size_t`. `sizeof(v)` retorna o tamanho do objeto vector, não dos elementos.'
+          },
+          {
+            text: 'O que é `std::string` em C++?',
+            options: [
+              'Um array de char terminado em \\0',
+              'Uma classe da STL que gerencia uma string dinamicamente, com operadores sobrecarregados e métodos utilitários',
+              'Um typedef para `char*`',
+              'Uma macro do preprocessador'
+            ],
+            correct: 1,
+            fb: '`std::string` é uma classe completa: gerencia memória, suporta `+` para concatenação, `.size()`, `.substr()`, `.find()` e muito mais.'
+          }
+        ]
+      },
+      {
+        id: 2, label: 'Nível 2', sublabel: 'Templates de classe, map e algoritmos',
+        questions: [
+          {
+            text: 'Como declarar um template de classe `Pilha` que armazena elementos do tipo `T`?',
+            options: [
+              'class Pilha<T> { ... }',
+              'template<class T> class Pilha { ... }',
+              'generic class Pilha(T) { ... }',
+              'Pilha<typename T> class { ... }'
+            ],
+            correct: 1,
+            fb: '`template<class T>` ou `template<typename T>` — ambos equivalentes para parâmetros de tipo. Depois define-se a classe normalmente usando `T`.'
+          },
+          {
+            text: 'O que `std::map<std::string, int>::find("chave")` retorna se a chave não existe?',
+            options: ['nullptr', '0', 'map.end()', 'lança std::exception'],
+            correct: 2,
+            fb: '`find` retorna um iterador. Se não encontrar, retorna `map.end()`. Sempre compare com `end()` antes de desreferenciar.'
+          },
+          {
+            text: 'O que faz `std::sort(v.begin(), v.end())`?',
+            options: [
+              'Ordena os elementos de v em ordem crescente usando quicksort/introsort',
+              'Retorna um novo vetor ordenado sem modificar v',
+              'Ordena apenas os primeiros 50% dos elementos',
+              'Compila apenas se T tiver operador < explícito'
+            ],
+            correct: 0,
+            fb: '`std::sort` ordena in-place em O(n log n). Requer que o tipo tenha `operator<`. Aceita comparador customizado como terceiro argumento.'
+          },
+          {
+            text: 'O que são iteradores na STL?',
+            options: [
+              'Ponteiros inteligentes que gerenciam memória',
+              'Objetos que abstraem a travessia de contêineres, com interface semelhante a ponteiros',
+              'Funções lambda para percorrer coleções',
+              'Índices inteiros dos elementos'
+            ],
+            correct: 1,
+            fb: 'Iteradores generalizam ponteiros: `begin()` aponta para o primeiro, `end()` para "um após o último". Compatíveis com algoritmos da STL.'
+          },
+          {
+            text: 'O que é `std::pair<int, std::string>`?',
+            options: [
+              'Uma classe que une dois vetores',
+              'Um template que agrupa dois valores de tipos possivelmente diferentes, acessados por .first e .second',
+              'Um ponteiro duplo',
+              'Uma struct de dois campos fixos do mesmo tipo'
+            ],
+            correct: 1,
+            fb: '`std::pair` agrupa dois valores. `.first` é o int, `.second` é a string. Muito usado como valor em `std::map`.'
+          }
+        ]
+      },
+      {
+        id: 3, label: 'Nível 3', sublabel: 'Algoritmos avançados e especialização',
+        questions: [
+          {
+            text: 'O que é especialização de template?',
+            options: [
+              'Criar um template com mais de um parâmetro',
+              'Fornecer uma implementação alternativa específica para um tipo concreto',
+              'Herdar de um template',
+              'Instanciar um template explicitamente'
+            ],
+            correct: 1,
+            fb: '`template<> class Pilha<bool> { ... }` especializa o template para `bool`, permitindo otimizações (ex: armazenar bits).'
+          },
+          {
+            text: 'Qual a complexidade de busca em `std::map` vs `std::unordered_map`?',
+            options: [
+              'Ambos O(1) amortizado',
+              'map: O(log n) — árvore balanceada; unordered_map: O(1) amortizado — tabela hash',
+              'map: O(1); unordered_map: O(n) no pior caso',
+              'Idênticos — só diferem na sintaxe'
+            ],
+            correct: 1,
+            fb: '`std::map` usa red-black tree → O(log n) garantido. `std::unordered_map` usa hash → O(1) amortizado mas O(n) no pior caso (colisões).'
+          },
+          {
+            text: 'O que faz `std::find_if(v.begin(), v.end(), pred)`?',
+            options: [
+              'Filtra e retorna um novo vetor com elementos que satisfazem pred',
+              'Retorna um iterador para o primeiro elemento onde pred(elem) == true, ou end()',
+              'Remove elementos que satisfazem pred',
+              'Conta quantos elementos satisfazem pred'
+            ],
+            correct: 1,
+            fb: '`find_if` para na primeira ocorrência que satisfaz o predicado e retorna o iterador. Se nenhum elemento satisfazer, retorna `end()`.'
+          },
+          {
+            text: 'Qual a diferença entre `std::vector::reserve(n)` e `std::vector::resize(n)`?',
+            options: [
+              'Nenhuma — ambos fazem a mesma coisa',
+              'reserve aloca capacidade sem alterar size; resize muda o tamanho lógico e inicializa novos elementos',
+              'resize aloca capacidade; reserve muda o size',
+              'reserve funciona apenas para vetores vazios'
+            ],
+            correct: 1,
+            fb: '`reserve(n)` evita realocações futuras mas não cria elementos. `resize(n)` ajusta o `size()` — adiciona ou remove elementos, inicializando novos com valor padrão.'
+          },
+          {
+            text: 'O que `std::transform(v.begin(), v.end(), out.begin(), fn)` faz?',
+            options: [
+              'Filtra elementos de v em out',
+              'Aplica fn a cada elemento de v e armazena o resultado em out',
+              'Move elementos de v para out sem copiar',
+              'Ordena v e armazena em out'
+            ],
+            correct: 1,
+            fb: '`std::transform` é o map funcional do C++: aplica uma função a cada elemento e escreve o resultado no iterador de saída.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 3, cls: 't3',
+    icon: '🧠',
+    title: 'RAII, Smart Pointers e C++ Moderno',
+    desc: 'Gerenciamento de memória com RAII, unique_ptr, shared_ptr, move semantics, lambdas e recursos de C++11/14/17.',
+    levels: [
+      {
+        id: 1, label: 'Nível 1', sublabel: 'Memória e smart pointers básicos',
+        questions: [
+          {
+            text: 'O que o operador `new` retorna em C++?',
+            options: [
+              'O objeto alocado por valor',
+              'Um ponteiro para o objeto alocado no heap',
+              'Uma referência ao objeto',
+              'Um índice na memória'
+            ],
+            correct: 1,
+            fb: '`new Motor()` aloca no heap e retorna `Motor*`. É responsabilidade do programador chamar `delete` — daí a importância dos smart pointers.'
+          },
+          {
+            text: 'Qual é o problema de usar `new` sem o correspondente `delete`?',
+            options: [
+              'Erro de compilação',
+              'O programa aborta imediatamente',
+              'Vazamento de memória — o heap cresce indefinidamente',
+              'Comportamento indefinido na próxima alocação'
+            ],
+            correct: 2,
+            fb: 'Sem `delete`, a memória alocada com `new` nunca é liberada. Em programas longos, isso exaure a memória disponível.'
+          },
+          {
+            text: 'Como criar um `std::unique_ptr<Motor>`?',
+            options: [
+              'Motor* m = unique_ptr<Motor>();',
+              'std::unique_ptr<Motor> m = std::make_unique<Motor>();',
+              'auto m = new unique_ptr<Motor>;',
+              'unique_ptr m(Motor);'
+            ],
+            correct: 1,
+            fb: '`std::make_unique<T>(args...)` é a forma recomendada desde C++14. Segura contra exceções e não requer `delete` explícito.'
+          },
+          {
+            text: 'O que é `nullptr` em C++11?',
+            options: [
+              'O mesmo que 0 ou NULL — apenas uma sintaxe alternativa',
+              'Uma palavra-chave tipada (std::nullptr_t) que representa ponteiro nulo sem ambiguidade',
+              'Um macro que expande para (void*)0',
+              'Um ponteiro especial que aponta para si mesmo'
+            ],
+            correct: 1,
+            fb: '`nullptr` tem tipo `std::nullptr_t`. Evita a ambiguidade de `NULL` (que é inteiro 0) em sobrecargas de função: `f(int)` vs `f(int*)`.'
+          },
+          {
+            text: 'Qual a diferença entre alocar na pilha vs no heap?',
+            options: [
+              'Pilha é mais lenta; heap é mais rápido',
+              'Pilha tem escopo automático e duração limitada ao bloco; heap persiste até delete/fim do smart pointer',
+              'Pilha pode crescer indefinidamente; heap é fixo',
+              'São equivalentes em C++ moderno'
+            ],
+            correct: 1,
+            fb: 'Variáveis na pilha são destruídas ao sair do escopo. No heap, a lifetime é controlada pelo programador (ou pelo smart pointer que encapsula a posse).'
+          }
+        ]
+      },
+      {
+        id: 2, label: 'Nível 2', sublabel: 'unique_ptr, shared_ptr, move e lambdas',
+        questions: [
+          {
+            text: 'Qual a diferença fundamental entre `unique_ptr` e `shared_ptr`?',
+            options: [
+              'unique_ptr usa heap; shared_ptr usa pilha',
+              'unique_ptr tem posse exclusiva (1 dono); shared_ptr permite posse compartilhada com contagem de referências',
+              'shared_ptr é mais eficiente para tipos primitivos',
+              'unique_ptr pode ser copiado; shared_ptr não'
+            ],
+            correct: 1,
+            fb: '`unique_ptr` não pode ser copiado, só movido — garante dono único. `shared_ptr` mantém um contador: quando chega a 0, o objeto é destruído.'
+          },
+          {
+            text: 'O que acontece ao fazer `auto b = std::move(a)` onde `a` é um `unique_ptr`?',
+            options: [
+              'Erro — unique_ptr não pode ser movido',
+              'Copia o objeto gerenciado para b',
+              'Transfere a posse para b; a fica em estado válido mas nulo (nullptr)',
+              'b e a passam a compartilhar a posse'
+            ],
+            correct: 2,
+            fb: '`std::move` transfere a posse: `b` assume o ponteiro, `a` vira nullptr. Tentar usar `a` depois é válido (é nullptr), mas desreferenciar seria UB.'
+          },
+          {
+            text: 'O que o keyword `auto` faz na declaração `auto x = 42.0`?',
+            options: [
+              'Declara x como int',
+              'Deduz o tipo de x a partir do inicializador — neste caso double',
+              'Cria uma variável de tipo variante (std::any)',
+              'Força alocação no heap'
+            ],
+            correct: 1,
+            fb: '`auto` pede ao compilador que deduza o tipo. `42.0` é `double`, portanto `x` é `double`. Evita repetição e facilita código genérico.'
+          },
+          {
+            text: 'Qual é a sintaxe de uma lambda que captura x por valor e retorna x*2?',
+            options: [
+              'lambda(x) { return x*2; }',
+              '[x]() { return x*2; }',
+              '[=x] -> int { return x*2; }',
+              'function(x) => x*2'
+            ],
+            correct: 1,
+            fb: '`[captura](parâmetros) { corpo }`. `[x]` captura x por valor. `[&x]` capturaria por referência. `[=]` captura tudo por valor.'
+          },
+          {
+            text: 'O que acontece automaticamente quando um `unique_ptr` sai de escopo?',
+            options: [
+              'Nada — memória só é liberada com reset()',
+              'O destrutor do objeto gerenciado é chamado e a memória é liberada',
+              'O ponteiro se torna nullptr mas a memória permanece',
+              'Uma exceção é lançada se o ponteiro não for nulo'
+            ],
+            correct: 1,
+            fb: 'Esse é o princípio de RAII: o destrutor do `unique_ptr` chama `delete` no ponteiro gerenciado. Não é necessário nenhum `delete` manual.'
+          }
+        ]
+      },
+      {
+        id: 3, label: 'Nível 3', sublabel: 'Move semantics, weak_ptr e C++ moderno',
+        questions: [
+          {
+            text: 'A "Regra dos Três" em C++ diz que se você define um destes, deve definir os três. Quais são?',
+            options: [
+              'construtor, destrutor e operator==',
+              'destrutor, construtor de cópia e operador de atribuição de cópia',
+              'construtor, move constructor e destrutor',
+              'operator new, operator delete e destrutor'
+            ],
+            correct: 1,
+            fb: 'Se você precisa de um destrutor customizado (ex: liberar recursos), provavelmente também precisa de um construtor de cópia e operador de atribuição customizados para evitar double-free.'
+          },
+          {
+            text: 'Qual o propósito do `std::weak_ptr`?',
+            options: [
+              'Um shared_ptr com menor overhead',
+              'Observar um objeto gerenciado por shared_ptr sem incrementar o contador de referências, quebrando ciclos',
+              'Um ponteiro que pode ser nulo por padrão',
+              'Uma alternativa ao unique_ptr para arrays'
+            ],
+            correct: 1,
+            fb: 'Ciclos entre shared_ptrs causam vazamentos (contadores nunca chegam a 0). `weak_ptr` observa sem "segurar" o objeto — use `lock()` para acessar com segurança.'
+          },
+          {
+            text: 'Qual é a assinatura de um move constructor para a classe `Buffer`?',
+            options: [
+              'Buffer(Buffer b)',
+              'Buffer(const Buffer& b)',
+              'Buffer(Buffer&& b) noexcept',
+              'void Buffer::move(Buffer& b)'
+            ],
+            correct: 2,
+            fb: 'Move constructor recebe uma rvalue reference (`&&`) e deve ser `noexcept` para interagir bem com contêineres STL. Transfere recursos sem copiar.'
+          },
+          {
+            text: 'Como `std::optional<int>` difere de um `int*`?',
+            options: [
+              'Não há diferença prática',
+              'optional é alocado no heap; int* pode ser na pilha',
+              'optional expressa ausência de valor sem alocação dinâmica e sem risco de ponteiro pendente',
+              'optional só funciona com tipos triviais'
+            ],
+            correct: 2,
+            fb: '`std::optional<T>` armazena o valor inline (sem heap). Use `.has_value()` ou `if (opt)` antes de acessar com `*opt` ou `opt.value()`.'
+          },
+          {
+            text: 'O que `std::make_unique<T>(args...)` oferece em relação a `new T(args...)`?',
+            options: [
+              'Nenhuma diferença — é apenas açúcar sintático',
+              'Evita vazamento de memória em expressões com múltiplos sub-argumentos e não requer tipo repetido',
+              'Aloca no stack em vez do heap',
+              'Permite criar arrays maiores que new'
+            ],
+            correct: 1,
+            fb: 'Com `new`, `f(unique_ptr<T>(new T()), g())` pode vazar se `g()` lançar antes de unique_ptr ser construído. `make_unique` é atômico e o tipo só aparece uma vez.'
+          }
+        ]
+      }
+    ]
+  }
+];
+
+// ─────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────
+let currentTopic = null;
+let currentLevel = null;
+let currentQ = 0;
+let answers = [];
+let score = 0;
+
+function storKey(topicId, levelId) { return `tc_cppq_t${topicId}l${levelId}`; }
+function isPassed(topicId, levelId) { return localStorage.getItem(storKey(topicId, levelId)) === 'pass'; }
+function markPassed(topicId, levelId) { localStorage.setItem(storKey(topicId, levelId), 'pass'); }
+
+// ─────────────────────────────────────────────────────────────
+//  VIEWS
+// ─────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showHome() {
+  buildTopicGrid();
+  show('view-home');
+}
+
+function showLevels(topicId) {
+  currentTopic = topicId;
+  const topic = TOPICS.find(t => t.id === topicId);
+  document.getElementById('ls-title').textContent = topic.title;
+  document.getElementById('ls-desc').textContent = topic.desc;
+
+  const container = document.getElementById('level-cards-list');
+  container.innerHTML = '';
+  topic.levels.forEach(lv => {
+    const done = isPassed(topicId, lv.id);
+    const div = document.createElement('div');
+    div.className = `level-card lv${lv.id}${done ? ' done' : ''}`;
+    div.innerHTML = `
+      <div class="level-badge">${lv.id}</div>
+      <div class="level-info">
+        <h3>${lv.label}</h3>
+        <p>${lv.sublabel} · 5 questões</p>
+      </div>
+      <div class="level-status"></div>`;
+    div.onclick = () => startQuiz(topicId, lv.id);
+    container.appendChild(div);
+  });
+  show('view-levels');
+}
+
+function buildTopicGrid() {
+  const grid = document.getElementById('topic-grid');
+  grid.innerHTML = '';
+  TOPICS.forEach(t => {
+    const card = document.createElement('div');
+    card.className = `topic-card ${t.cls}`;
+    const pills = t.levels.map(lv =>
+      `<span class="pill lv${lv.id}${isPassed(t.id, lv.id) ? ' done' : ''}">Nível ${lv.id}</span>`
+    ).join('');
+    card.innerHTML = `
+      <div class="topic-icon">${t.icon}</div>
+      <h2>${t.title}</h2>
+      <p>${t.desc}</p>
+      <div class="level-pills">${pills}</div>`;
+    card.onclick = () => showLevels(t.id);
+    grid.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+//  QUIZ ENGINE
+// ─────────────────────────────────────────────────────────────
+function startQuiz(topicId, levelId) {
+  currentTopic = topicId;
+  currentLevel = levelId;
+  currentQ = 0;
+  answers = [];
+  score = 0;
+  show('view-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const q = level.questions[currentQ];
+  const total = level.questions.length;
+
+  document.getElementById('q-counter').textContent = `${currentQ + 1} / ${total}`;
+  const pct = (currentQ / total) * 100;
+  const fill = document.getElementById('q-progress');
+  fill.style.width = pct + '%';
+  fill.className = `progress-fill lv${currentLevel}-fill`;
+
+  const badge = document.getElementById('q-badge');
+  badge.textContent = level.label.toUpperCase();
+  badge.className = `q-topic-badge lv${currentLevel}`;
+
+  document.getElementById('q-text').textContent = q.text;
+
+  const codeEl = document.getElementById('q-code');
+  if (q.code) {
+    codeEl.innerHTML = q.code;
+    codeEl.style.display = 'block';
+  } else {
+    codeEl.style.display = 'none';
+  }
+
+  const keys = ['A', 'B', 'C', 'D'];
+  const optList = document.getElementById('q-options');
+  optList.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-key">${keys[i]}</span>${opt}`;
+    btn.onclick = () => answer(i);
+    optList.appendChild(btn);
+  });
+
+  const fb = document.getElementById('q-feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+  document.getElementById('next-btn').className = 'next-btn';
+}
+
+function answer(chosen) {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const q = level.questions[currentQ];
+  const correct = (chosen === q.correct);
+
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((o, i) => {
+    o.disabled = true;
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === chosen && !correct) o.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('q-feedback');
+  fb.textContent = (correct ? '✓ ' : '✗ ') + q.fb;
+  fb.className = `feedback show ${correct ? 'correct-fb' : 'wrong-fb'}`;
+
+  if (correct) score++;
+  answers.push({ text: q.text, chosen, correct: q.correct, ok: correct });
+
+  const total = level.questions.length;
+  document.getElementById('q-progress').style.width = ((currentQ + 1) / total * 100) + '%';
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.className = 'next-btn show';
+  nextBtn.textContent = currentQ + 1 < total ? 'Próxima →' : 'Ver resultado →';
+}
+
+function nextQuestion() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const total = level.questions.length;
+  currentQ++;
+  if (currentQ < total) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  RESULT
+// ─────────────────────────────────────────────────────────────
+function showResult() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const total = level.questions.length;
+  const pct = Math.round(score / total * 100);
+
+  markPassed(currentTopic, currentLevel);
+
+  const great = score >= 4;
+  const ring = document.getElementById('r-ring');
+  ring.className = `score-ring ${great ? 'pass' : 'warn'}`;
+  document.getElementById('r-score').textContent = score;
+  document.getElementById('r-of').textContent = `de ${total}`;
+
+  document.getElementById('r-title').textContent = score === total ? 'Perfeito! 🎯' : great ? 'Muito bem!' : 'Continue praticando!';
+  document.getElementById('r-msg').textContent = great
+    ? `Você acertou ${score}/${total} (${pct}%). Ótimo desempenho!`
+    : `Você acertou ${score}/${total} (${pct}%). Revise os conceitos e tente novamente quando quiser.`;
+
+  const nextBtn = document.getElementById('r-next-btn');
+  const hasNext = topic.levels.find(l => l.id === currentLevel + 1);
+  if (hasNext) {
+    nextBtn.textContent = `Ir para Nível ${currentLevel + 1} →`;
+    nextBtn.style.display = '';
+  } else {
+    nextBtn.textContent = 'Ver todos os tópicos →';
+    nextBtn.style.display = '';
+  }
+
+  const reviewEl = document.getElementById('r-review');
+  reviewEl.innerHTML = '<div style="font-size:.85rem;color:var(--muted);margin-bottom:12px;font-weight:600;">Revisão das questões:</div>';
+  answers.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = `review-item ${a.ok ? 'r-correct' : 'r-wrong'}`;
+    item.innerHTML = `
+      <div class="r-q">${i+1}. ${a.text.substring(0, 80)}${a.text.length > 80 ? '…' : ''}</div>
+      <div class="r-ans${a.ok ? '' : ' wrong-ans'}">
+        ${a.ok
+          ? `<span>Correto ✓</span>`
+          : `Você escolheu: ${['A','B','C','D'][a.chosen]} · Correto: <span>${['A','B','C','D'][a.correct]}</span>`}
+      </div>`;
+    reviewEl.appendChild(item);
+  });
+
+  show('view-result');
+}
+
+function retryLevel() { startQuiz(currentTopic, currentLevel); }
+function nextLevel() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const hasNext = topic.levels.find(l => l.id === currentLevel + 1);
+  if (hasNext) startQuiz(currentTopic, currentLevel + 1);
+  else showHome();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────
+showHome();
+</script>
+</body>
+</html>

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco de Questões C — Phoenix Unicamp</title>
+<style>
+:root {
+  --bg: #080600; --surface: #110e00; --surface2: #1a1500;
+  --orange: #ff6a00; --gold: #ffaa00; --text: #f0ece0;
+  --muted: #7a6a50; --border: rgba(255,106,0,0.18);
+  --green: #4caf50; --red: #f44336;
+  --t1: #2196f3; --t2: #ff9800; --t3: #9c27b0;
+  --lv1: #4caf50; --lv2: #ffaa00; --lv3: #ff6a00;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+/* ── NAV ── */
+nav {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 40px; border-bottom: 1px solid var(--border);
+  background: rgba(8,6,0,.9); backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 100;
+}
+nav .brand { font-size: 1rem; font-weight: 700; color: var(--orange); }
+nav .sub { font-size: .75rem; color: var(--muted); }
+nav a { margin-left: auto; color: var(--orange); text-decoration: none; font-size: .82rem; }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── HOME ── */
+.home-hero { text-align: center; padding: 60px 20px 36px; }
+.home-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; }
+.home-hero h1 span { color: var(--orange); }
+.home-hero p { margin-top: 12px; color: var(--muted); font-size: 1rem; max-width: 520px; margin-inline: auto; }
+
+.topic-grid { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; padding: 24px 24px 80px; max-width: 1100px; margin: 0 auto; }
+
+.topic-card {
+  background: var(--surface); border-radius: 16px; padding: 32px 28px 28px;
+  width: 320px; cursor: pointer; border: 1px solid var(--border);
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  position: relative; overflow: hidden;
+}
+.topic-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
+.topic-card.t1::before { background: linear-gradient(90deg, var(--t1), #64b5f6); }
+.topic-card.t2::before { background: linear-gradient(90deg, var(--t2), #ffcc02); }
+.topic-card.t3::before { background: linear-gradient(90deg, var(--t3), #ce93d8); }
+.topic-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.4); }
+.topic-card.t1:hover { border-color: var(--t1); }
+.topic-card.t2:hover { border-color: var(--t2); }
+.topic-card.t3:hover { border-color: var(--t3); }
+
+.topic-icon { font-size: 2.4rem; margin-bottom: 14px; }
+.topic-card h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+.topic-card p { font-size: .85rem; color: var(--muted); line-height: 1.55; margin-bottom: 18px; }
+
+.level-pills { display: flex; gap: 8px; }
+.pill {
+  padding: 4px 14px; border-radius: 99px; font-size: .75rem; font-weight: 700;
+  border: 1px solid; opacity: .5;
+}
+.pill.done { opacity: 1; }
+.pill.lv1 { color: var(--lv1); border-color: var(--lv1); }
+.pill.lv2 { color: var(--lv2); border-color: var(--lv2); }
+.pill.lv3 { color: var(--lv3); border-color: var(--lv3); }
+.pill.done.lv1 { background: rgba(76,175,80,.15); }
+.pill.done.lv2 { background: rgba(255,170,0,.12); }
+.pill.done.lv3 { background: rgba(255,106,0,.12); }
+
+/* ── LEVEL SELECT ── */
+.level-select-wrap { max-width: 680px; margin: 0 auto; padding: 48px 24px; }
+.back-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 8px; padding: 7px 18px; font-size: .82rem; cursor: pointer;
+  margin-bottom: 32px; font-family: inherit; transition: border-color .15s, color .15s;
+}
+.back-btn:hover { border-color: var(--orange); color: var(--orange); }
+.level-select-wrap h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+.level-select-wrap .sub-desc { color: var(--muted); font-size: .9rem; margin-bottom: 36px; }
+
+.level-cards { display: flex; flex-direction: column; gap: 16px; }
+.level-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 22px 26px; cursor: pointer; display: flex; align-items: center; gap: 20px;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.level-card:hover:not(.locked) { transform: translateX(5px); box-shadow: 0 6px 24px rgba(0,0,0,.3); }
+.level-card.locked { opacity: .45; cursor: not-allowed; }
+.level-card.lv1 { border-left: 4px solid var(--lv1); }
+.level-card.lv2 { border-left: 4px solid var(--lv2); }
+.level-card.lv3 { border-left: 4px solid var(--lv3); }
+.level-badge {
+  min-width: 48px; height: 48px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;
+}
+.level-card.lv1 .level-badge { background: rgba(76,175,80,.15); color: var(--lv1); }
+.level-card.lv2 .level-badge { background: rgba(255,170,0,.12); color: var(--lv2); }
+.level-card.lv3 .level-badge { background: rgba(255,106,0,.12); color: var(--lv3); }
+.level-card .level-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+.level-card .level-info p { font-size: .82rem; color: var(--muted); }
+.level-card .level-status { margin-left: auto; font-size: 1.2rem; }
+.level-card.done .level-status::after { content: '✓'; color: var(--green); font-weight: 800; }
+.level-card.locked .level-status::after { content: '🔒'; }
+
+/* ── QUIZ ── */
+.quiz-wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+.quiz-header { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+.q-counter { font-size: .82rem; color: var(--muted); }
+.progress-bar { flex: 1; height: 6px; background: rgba(255,255,255,.07); border-radius: 6px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 6px; transition: width .4s ease; }
+.lv1-fill { background: linear-gradient(90deg, var(--lv1), #81c784); }
+.lv2-fill { background: linear-gradient(90deg, var(--lv2), #ffd54f); }
+.lv3-fill { background: linear-gradient(90deg, var(--lv3), var(--gold)); }
+
+.question-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px 30px 28px;
+}
+.q-topic-badge {
+  display: inline-block; padding: 2px 12px; border-radius: 99px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; margin-bottom: 18px;
+}
+.q-topic-badge.lv1 { background: rgba(76,175,80,.12); color: var(--lv1); border: 1px solid rgba(76,175,80,.3); }
+.q-topic-badge.lv2 { background: rgba(255,170,0,.1); color: var(--lv2); border: 1px solid rgba(255,170,0,.3); }
+.q-topic-badge.lv3 { background: rgba(255,106,0,.1); color: var(--lv3); border: 1px solid rgba(255,106,0,.3); }
+
+.question-text { font-size: 1rem; font-weight: 600; line-height: 1.65; margin-bottom: 18px; color: var(--text); }
+
+.code-block {
+  background: #0c0800; border: 1px solid rgba(255,106,0,.15);
+  border-left: 4px solid var(--orange); border-radius: 0 10px 10px 0;
+  padding: 16px 20px; margin-bottom: 20px; overflow-x: auto;
+  font-family: 'Consolas', 'Courier New', monospace; font-size: .84rem;
+  line-height: 1.75; color: #f0ece0; white-space: pre;
+}
+.code-block .kw { color: #ff9800; font-weight: 700; }
+.code-block .fn { color: #64b5f6; }
+.code-block .str { color: #a5d6a7; }
+.code-block .num { color: #ce93d8; }
+.code-block .cmt { color: #455a64; font-style: italic; }
+.code-block .op  { color: #ef9a9a; }
+
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 18px; cursor: pointer;
+  font-size: .92rem; color: var(--text); text-align: left; font-family: inherit;
+  transition: background .12s, border-color .12s;
+  display: flex; align-items: center; gap: 12px;
+}
+.opt:hover:not(:disabled) { background: rgba(255,106,0,.08); border-color: var(--orange); }
+.opt .opt-key {
+  min-width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+}
+.opt.correct { background: rgba(76,175,80,.18); border-color: var(--green); }
+.opt.correct .opt-key { background: var(--green); border-color: var(--green); color: #000; }
+.opt.wrong { background: rgba(244,67,54,.12); border-color: var(--red); }
+.opt.wrong .opt-key { background: var(--red); border-color: var(--red); color: #fff; }
+
+.feedback {
+  margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: .88rem;
+  line-height: 1.55; display: none;
+}
+.feedback.show { display: block; }
+.feedback.correct-fb { background: rgba(76,175,80,.12); color: #a5d6a7; border: 1px solid rgba(76,175,80,.25); }
+.feedback.wrong-fb { background: rgba(244,67,54,.1); color: #ef9a9a; border: 1px solid rgba(244,67,54,.2); }
+
+.next-btn {
+  margin-top: 22px; padding: 11px 32px;
+  background: linear-gradient(135deg, var(--orange), var(--gold));
+  color: #000; font-weight: 700; font-size: .92rem;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: opacity .2s, transform .15s; display: none;
+}
+.next-btn.show { display: inline-block; }
+.next-btn:hover { opacity: .88; transform: scale(1.02); }
+
+/* ── RESULT ── */
+.result-wrap { max-width: 580px; margin: 0 auto; padding: 60px 24px; text-align: center; }
+.score-ring {
+  width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 28px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; font-weight: 800;
+  border: 6px solid; position: relative;
+}
+.score-ring .score-num { font-size: 2.4rem; line-height: 1; }
+.score-ring .score-of { font-size: .8rem; color: var(--muted); }
+.score-ring.pass { border-color: var(--green); color: var(--green); background: rgba(76,175,80,.08); }
+.score-ring.warn { border-color: var(--gold); color: var(--gold); background: rgba(255,170,0,.08); }
+.score-ring.fail { border-color: var(--red); color: var(--red); background: rgba(244,67,54,.08); }
+
+.result-wrap h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; }
+.result-wrap p { font-size: .95rem; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+.result-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.btn-primary {
+  padding: 11px 28px;
+  background: linear-gradient(135deg, var(--orange), var(--gold));
+  color: #000; font-weight: 700; font-size: .9rem;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: opacity .2s; font-family: inherit;
+}
+.btn-primary:hover { opacity: .88; }
+.btn-secondary {
+  padding: 11px 28px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-weight: 600; font-size: .9rem;
+  border-radius: 8px; cursor: pointer; font-family: inherit;
+  transition: border-color .15s;
+}
+.btn-secondary:hover { border-color: var(--orange); }
+
+/* ── REVIEW PANEL ── */
+.review-list { margin-top: 32px; text-align: left; }
+.review-item { background: var(--surface); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid; }
+.review-item.r-correct { border-color: var(--green); }
+.review-item.r-wrong { border-color: var(--red); }
+.review-item .r-q { font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+.review-item .r-ans { font-size: .8rem; color: var(--muted); }
+.review-item .r-ans span { color: var(--green); }
+.review-item .r-ans.wrong-ans span { color: var(--red); }
+
+@media (max-width: 600px) {
+  nav { padding: 14px 16px; }
+  .topic-card { width: 100%; }
+  .quiz-wrap, .level-select-wrap, .result-wrap { padding: 24px 16px 60px; }
+  .question-card { padding: 22px 18px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="brand">Banco de Questões — Linguagem C</div>
+    <div class="sub">Phoenix Unicamp · 3 tópicos · 3 níveis cada</div>
+  </div>
+  <a href="index.html">← Índice</a>
+</nav>
+
+<!-- ═══════ VIEW: HOME ═══════ -->
+<div id="view-home" class="view active">
+  <div class="home-hero">
+    <h1>Questões de <span>C</span></h1>
+    <p>Escolha um tópico e pratique no seu ritmo. Todos os níveis estão disponíveis desde o início.</p>
+  </div>
+  <div class="topic-grid" id="topic-grid">
+    <!-- generated by JS -->
+  </div>
+</div>
+
+<!-- ═══════ VIEW: LEVEL SELECT ═══════ -->
+<div id="view-levels" class="view">
+  <div class="level-select-wrap">
+    <button class="back-btn" onclick="showHome()">← Voltar</button>
+    <h2 id="ls-title"></h2>
+    <p class="sub-desc" id="ls-desc"></p>
+    <div class="level-cards" id="level-cards-list"></div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW: QUIZ ═══════ -->
+<div id="view-quiz" class="view">
+  <div class="quiz-wrap">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="showLevels(currentTopic)" style="margin:0;padding:5px 14px">←</button>
+      <span class="q-counter" id="q-counter">1 / 5</span>
+      <div class="progress-bar"><div class="progress-fill" id="q-progress"></div></div>
+    </div>
+    <div class="question-card" id="question-card">
+      <div class="q-topic-badge" id="q-badge">NÍVEL 1</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="code-block" id="q-code" style="display:none"></div>
+      <div class="options-list" id="q-options"></div>
+      <div class="feedback" id="q-feedback"></div>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Próxima →</button>
+  </div>
+</div>
+
+<!-- ═══════ VIEW: RESULT ═══════ -->
+<div id="view-result" class="view">
+  <div class="result-wrap">
+    <div class="score-ring" id="r-ring">
+      <div class="score-num" id="r-score"></div>
+      <div class="score-of" id="r-of"></div>
+    </div>
+    <h2 id="r-title"></h2>
+    <p id="r-msg"></p>
+    <div class="result-actions">
+      <button class="btn-secondary" onclick="retryLevel()">Tentar novamente</button>
+      <button class="btn-primary" id="r-next-btn" onclick="nextLevel()"></button>
+    </div>
+    <div class="review-list" id="r-review"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────────────────────
+const TOPICS = [
+  {
+    id: 1, cls: 't1',
+    icon: '🔢',
+    title: 'Tipos, Variáveis, Condicionais e Operadores',
+    desc: 'Declaração de variáveis, tipos primitivos, operadores aritméticos, relacionais e lógicos, if/else e operador ternário.',
+    levels: [
+      {
+        id: 1, label: 'Nível 1', sublabel: 'Fundamentos — declaração e uso básico',
+        questions: [
+          {
+            text: 'Qual é a declaração correta de uma variável inteira em C?',
+            options: ['variable int x = 5;', 'int x = 5;', 'x: int = 5;', 'integer x = 5;'],
+            correct: 1,
+            fb: 'Em C, o tipo vem antes do nome: `int x = 5;`. Sem palavras-chave extras.'
+          },
+          {
+            text: 'O que este código imprime?',
+            code: '<span class="kw">int</span> x = <span class="num">10</span>;\n<span class="kw">if</span> (x > <span class="num">5</span>)\n    <span class="fn">printf</span>(<span class="str">"A"</span>);\n<span class="kw">else</span>\n    <span class="fn">printf</span>(<span class="str">"B"</span>);',
+            options: ['B', 'AB', 'A', 'Erro de compilação'],
+            correct: 2,
+            fb: 'x=10 é maior que 5, então o bloco `if` executa e imprime "A".'
+          },
+          {
+            text: 'O especificador de formato `%d` no printf representa:',
+            options: ['número ponto flutuante double', 'caractere ASCII', 'inteiro decimal (int)', 'string de texto'],
+            correct: 2,
+            fb: '`%d` → inteiro decimal. `%f` → float. `%c` → char. `%s` → string.'
+          },
+          {
+            text: 'Qual operador verifica igualdade entre dois valores em C?',
+            options: ['= (atribuição)', '== (comparação)', ':= (Pascal)', '=== (JavaScript)'],
+            correct: 1,
+            fb: '`==` compara valores. `=` atribui. Confundir os dois é um bug clássico em C!'
+          },
+          {
+            text: 'Qual é o resultado da expressão `5 + 3 * 2` em C?',
+            options: ['16', '11', '10', '13'],
+            correct: 1,
+            fb: 'Precedência: multiplicação antes da adição. 3*2=6, depois 5+6=11.'
+          }
+        ]
+      },
+      {
+        id: 2, label: 'Nível 2', sublabel: 'Operadores e expressões intermediárias',
+        questions: [
+          {
+            text: 'Qual o resultado de `7 % 3` em C?',
+            options: ['3', '2', '1', '0'],
+            correct: 1,
+            fb: 'O operador `%` retorna o resto da divisão. 7 ÷ 3 = 2 com resto 1. Resposta: 1.'
+          },
+          {
+            text: 'Qual o valor final de `x`?',
+            code: '<span class="kw">int</span> x = <span class="num">0</span>;\nx <span class="op">+=</span> <span class="num">5</span>;\nx <span class="op">*=</span> <span class="num">2</span>;\nx <span class="op">-=</span> <span class="num">3</span>;',
+            options: ['5', '7', '10', '12'],
+            correct: 1,
+            fb: 'Passo a passo: x=0 → x+=5 → x=5 → x*=2 → x=10 → x-=3 → x=7.'
+          },
+          {
+            text: 'O operador lógico `&&` retorna verdadeiro (1) quando:',
+            options: ['pelo menos um operando é diferente de zero', 'ambos os operandos são diferentes de zero', 'nenhum operando é zero', 'o primeiro operando é zero'],
+            correct: 1,
+            fb: '`&&` (AND lógico) → verdadeiro apenas se AMBOS forem verdadeiros (≠0).'
+          },
+          {
+            text: 'Qual o valor de `c` após a execução?',
+            code: '<span class="kw">int</span> a = <span class="num">5</span>, b = <span class="num">3</span>;\n<span class="kw">int</span> c = a > b <span class="op">?</span> a <span class="op">:</span> b;',
+            options: ['3', '5', '8', '0'],
+            correct: 1,
+            fb: 'Operador ternário: a>b é verdadeiro (5>3), então c = a = 5.'
+          },
+          {
+            text: 'O que `!0` retorna em C?',
+            options: ['-1', '0', '1', 'undefined'],
+            correct: 2,
+            fb: 'O operador `!` (NOT lógico) inverte o valor booleano. !0 = !falso = verdadeiro = 1.'
+          }
+        ]
+      },
+      {
+        id: 3, label: 'Nível 3', sublabel: 'Operadores bit a bit e comportamentos sutis',
+        questions: [
+          {
+            text: 'O que acontece com `x` após este código?',
+            code: '<span class="kw">unsigned char</span> x = <span class="num">255</span>;\nx<span class="op">++</span>;',
+            options: ['256', '255 (sem alteração)', '0 — wraparound por overflow', 'comportamento indefinido'],
+            correct: 2,
+            fb: 'unsigned char vai de 0 a 255. Incrementar 255 causa wraparound para 0 (comportamento definido em tipos sem sinal).'
+          },
+          {
+            text: 'Qual o resultado de `5 & 3` (AND bit a bit)?',
+            code: '<span class="cmt">// 5 em binário: 101</span>\n<span class="cmt">// 3 em binário: 011</span>\n<span class="cmt">// AND bit a bit: ???</span>',
+            options: ['8', '7', '6', '1'],
+            correct: 3,
+            fb: '101 & 011 = 001 = 1. O AND bit a bit retorna 1 apenas onde AMBOS têm bit 1.'
+          },
+          {
+            text: 'Qual o valor de `b`?',
+            code: '<span class="kw">int</span> a = <span class="num">6</span>;\n<span class="kw">int</span> b = a <span class="op">&gt;&gt;</span> <span class="num">1</span>;',
+            options: ['12', '4', '3', '2'],
+            correct: 2,
+            fb: 'Shift direito por 1 equivale a dividir por 2. 6 >> 1 = 3. Bits de 6 (110) → 011 = 3.'
+          },
+          {
+            text: 'O que `printf("%u", -1)` imprime num sistema de 32 bits?',
+            options: ['-1', 'erro de compilação', '0', '4294967295'],
+            correct: 3,
+            fb: '-1 em complemento de 2 com 32 bits = 0xFFFFFFFF. Interpretado como unsigned = 4294967295.'
+          },
+          {
+            text: 'Qual expressão testa se o bit 3 (posição 3, a partir do 0) de `flags` está ativo?',
+            options: ['flags & 3', 'flags & 8', 'flags | (1 << 3)', 'flags % 8'],
+            correct: 1,
+            fb: '1 << 3 = 8 (bit 3). flags & 8 retorna 8 se o bit 3 estiver ativo, ou 0 caso contrário.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 2, cls: 't2',
+    icon: '🔁',
+    title: 'Laços, Funções e Headers',
+    desc: 'for, while, do-while, break/continue, declaração e chamada de funções, protótipos e diretiva #include.',
+    levels: [
+      {
+        id: 1, label: 'Nível 1', sublabel: 'Fundamentos de loops e funções',
+        questions: [
+          {
+            text: 'Quantas vezes o corpo deste loop é executado?',
+            code: '<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < <span class="num">5</span>; i++) {\n    <span class="fn">printf</span>(<span class="str">"."</span>);\n}',
+            options: ['4', '5', '6', 'infinito'],
+            correct: 1,
+            fb: 'i vai de 0 a 4 (inclusive), executando para i=0,1,2,3,4 → 5 vezes.'
+          },
+          {
+            text: 'Qual palavra-chave interrompe um loop imediatamente?',
+            options: ['exit', 'stop', 'break', 'return'],
+            correct: 2,
+            fb: '`break` encerra o loop mais interno em que está. `return` encerra a função inteira.'
+          },
+          {
+            text: 'Para usar `printf` e `scanf`, qual header deve ser incluído?',
+            options: ['stdlib.h', 'stdio.h', 'string.h', 'math.h'],
+            correct: 1,
+            fb: '`stdio.h` (Standard I/O) fornece printf, scanf, puts, fgets, etc.'
+          },
+          {
+            text: 'Qual a sintaxe correta para declarar uma função que soma dois inteiros?',
+            options: ['function soma(int a, int b)', 'int soma(int a, int b)', 'def soma(a, b):', 'soma(a, b) -> int'],
+            correct: 1,
+            fb: 'Em C: tipo_retorno nome(parâmetros). Sem palavras-chave como `function` ou `def`.'
+          },
+          {
+            text: 'O que `continue` faz dentro de um loop?',
+            options: ['encerra o loop', 'pula o restante da iteração atual e vai para a próxima', 'reinicia o loop do início', 'não faz nada'],
+            correct: 1,
+            fb: '`continue` ignora o código restante da iteração atual e vai para a próxima verificação da condição.'
+          }
+        ]
+      },
+      {
+        id: 2, label: 'Nível 2', sublabel: 'while, do-while e funções com retorno',
+        questions: [
+          {
+            text: 'O que este código imprime?',
+            code: '<span class="kw">int</span> i = <span class="num">0</span>;\n<span class="kw">do</span> {\n    <span class="fn">printf</span>(<span class="str">"%d "</span>, i);\n    i++;\n} <span class="kw">while</span> (i < <span class="num">3</span>);',
+            options: ['1 2 3', '0 1 2', '0 1 2 3', 'nada — condição falsa de início'],
+            correct: 1,
+            fb: 'do-while executa ANTES de verificar a condição. i=0,1,2 são impressos. Quando i=3, a condição falha.'
+          },
+          {
+            text: 'Qual a principal diferença entre `while` e `do-while`?',
+            options: ['não há diferença', 'do-while executa o corpo ao menos uma vez mesmo se a condição for falsa', 'while é mais eficiente', 'do-while não aceita break'],
+            correct: 1,
+            fb: 'do-while sempre executa o corpo pelo menos uma vez, depois verifica a condição.'
+          },
+          {
+            text: 'Qual header fornece `sqrt()` e `pow()`?',
+            options: ['stdlib.h', 'stdio.h', 'math.h', 'float.h'],
+            correct: 2,
+            fb: '`math.h` fornece funções matemáticas: sqrt, pow, sin, cos, floor, ceil, fabs...'
+          },
+          {
+            text: 'O que uma função com retorno `void` deve fazer?',
+            options: ['retornar 0', 'retornar NULL', 'não retornar nenhum valor', 'retornar qualquer tipo'],
+            correct: 2,
+            fb: '`void` indica ausência de retorno. A função pode ter `return;` (sem valor) ou nenhum return.'
+          },
+          {
+            text: 'O que `#include <stdio.h>` instrui o compilador a fazer?',
+            options: ['importar o módulo stdio', 'copiar o conteúdo de stdio.h no ponto de inclusão', 'linkar a biblioteca stdio', 'declarar as funções de stdio inline'],
+            correct: 1,
+            fb: 'O preprocessador substitui `#include` pelo conteúdo do arquivo cabeçalho — protótipos de funções e definições.'
+          }
+        ]
+      },
+      {
+        id: 3, label: 'Nível 3', sublabel: 'Recursão, protótipos e escopo',
+        questions: [
+          {
+            text: 'O que este código retorna para `fatorial(4)`?',
+            code: '<span class="kw">int</span> <span class="fn">fatorial</span>(<span class="kw">int</span> n) {\n    <span class="kw">return</span> n <= <span class="num">1</span> ? <span class="num">1</span> : n * <span class="fn">fatorial</span>(n - <span class="num">1</span>);\n}',
+            options: ['8', '12', '24', '16'],
+            correct: 2,
+            fb: '4! = 4×3×2×1 = 24. Recursão: fatorial(4) = 4×fatorial(3) = 4×3×fatorial(2) = 4×3×2×1.'
+          },
+          {
+            text: 'O que ocorre se uma função recursiva nunca atinge a condição de parada?',
+            options: ['retorna 0', 'compila mas emite warning', 'stack overflow — a pilha de chamadas estoura', 'o compilador rejeita'],
+            correct: 2,
+            fb: 'Cada chamada recursiva ocupa espaço na pilha. Sem condição de parada, a pilha esgota → segfault/crash.'
+          },
+          {
+            text: 'Qual a diferença entre `#include <stdio.h>` e `#include "meu.h"`?',
+            options: ['nenhuma', '<> busca nos diretórios do sistema; "" busca no diretório atual primeiro', '"" é para C++; <> é para C', '<> inclui apenas protótipos; "" inclui implementação'],
+            correct: 1,
+            fb: '<> → diretórios de sistema (padrão C). "" → diretório atual do projeto, depois diretórios de sistema.'
+          },
+          {
+            text: 'O que é um protótipo de função em C?',
+            options: ['implementação completa da função', 'declaração da assinatura antes da definição para o compilador conhecer tipos', 'alias para outra função', 'função gerada automaticamente'],
+            correct: 1,
+            fb: 'Protótipo: `int soma(int, int);` — informa ao compilador o tipo de retorno e parâmetros antes da implementação.'
+          },
+          {
+            text: 'O que acontece com uma variável `static` dentro de uma função?',
+            code: '<span class="kw">void</span> <span class="fn">conta</span>() {\n    <span class="kw">static int</span> n = <span class="num">0</span>;\n    n++;\n    <span class="fn">printf</span>(<span class="str">"%d\\n"</span>, n);\n}',
+            options: ['n é reiniciada para 0 a cada chamada', 'n mantém seu valor entre chamadas', 'erro — static não pode ser local', 'n é compartilhada entre threads'],
+            correct: 1,
+            fb: 'Variáveis `static` locais são inicializadas uma vez e preservam seu valor entre chamadas da função.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 3, cls: 't3',
+    icon: '📦',
+    title: 'Vetores, Enumeração, Macros e Structs',
+    desc: 'Arrays unidimensionais e bidimensionais, enum, #define, typedef struct e acesso a membros.',
+    levels: [
+      {
+        id: 1, label: 'Nível 1', sublabel: 'Declaração e acesso básico',
+        questions: [
+          {
+            text: 'Como declarar um vetor de 5 inteiros em C?',
+            options: ['int vetor(5);', 'array<int,5> vetor;', 'int vetor[5];', 'int[5] vetor;'],
+            correct: 2,
+            fb: '`int vetor[5];` declara um array de 5 ints. O tamanho fica entre colchetes após o nome.'
+          },
+          {
+            text: 'Qual é o índice do primeiro elemento de um array em C?',
+            options: ['1', '-1', '0', 'depende do compilador'],
+            correct: 2,
+            fb: 'Em C, arrays são indexados a partir de 0. O último elemento de `v[5]` é `v[4]`.'
+          },
+          {
+            text: 'Como definir uma macro `PI` com valor 3.14159?',
+            options: ['const PI = 3.14159;', '#define PI 3.14159', 'macro PI 3.14159;', '#macro PI = 3.14159;'],
+            correct: 1,
+            fb: '`#define NOME valor` — sem ponto e vírgula, sem sinal de igual. É diretiva de preprocessador.'
+          },
+          {
+            text: 'O que é uma `struct` em C?',
+            options: ['um vetor de tipos iguais', 'um tipo que agrupa variáveis de tipos possivelmente diferentes', 'uma função embutida', 'um ponteiro genérico'],
+            correct: 1,
+            fb: 'struct agrupa campos heterogêneos: ex: `struct Motor { int rpm; float tensao; };`'
+          },
+          {
+            text: 'Qual palavra-chave define uma enumeração em C?',
+            options: ['enum', 'list', 'set', 'union'],
+            correct: 0,
+            fb: '`enum Cor { VERMELHO, VERDE, AZUL };` — os valores são inteiros sequenciais a partir de 0.'
+          }
+        ]
+      },
+      {
+        id: 2, label: 'Nível 2', sublabel: 'Operações com arrays, enum e struct',
+        questions: [
+          {
+            text: 'O que este código imprime?',
+            code: '<span class="kw">int</span> v[<span class="num">5</span>] = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};\n<span class="fn">printf</span>(<span class="str">"%d"</span>, v[<span class="num">3</span>]);',
+            options: ['30', '40', '50', 'erro'],
+            correct: 1,
+            fb: 'v[3] é o quarto elemento (índice 3): 40. Lembre: v[0]=10, v[1]=20, v[2]=30, v[3]=40.'
+          },
+          {
+            text: 'O que ocorre ao acessar `v[5]` em `int v[5]`?',
+            options: ['retorna 0', 'erro de compilação garantido', 'comportamento indefinido — acesso fora dos limites', 'retorna o último elemento'],
+            correct: 2,
+            fb: 'v[5] está fora do array (índices válidos: 0-4). Comportamento indefinido em C — pode corromper memória.'
+          },
+          {
+            text: 'Dado `enum Cor { VERMELHO, VERDE, AZUL };`, qual o valor inteiro de `VERDE`?',
+            options: ['0', '1', '2', 'indefinido'],
+            correct: 1,
+            fb: 'Por padrão, o primeiro enumerador vale 0. VERMELHO=0, VERDE=1, AZUL=2.'
+          },
+          {
+            text: 'Como acessar o campo `rpm` de uma struct `Motor m`?',
+            options: ['Motor->rpm', 'm.rpm', 'm[rpm]', 'rpm(m)'],
+            correct: 1,
+            fb: '`m.rpm` — o operador ponto (.) acessa membros de structs. `->` é para ponteiros de struct.'
+          },
+          {
+            text: 'Qual a diferença entre `#define MAX 100` e `const int MAX = 100`?',
+            options: ['nenhuma diferença funcional', '#define é substituição textual pelo preprocessador; const tem tipo, escopo e pode ser depurada', '#define é mais lento', 'const não pode ser usada em arrays'],
+            correct: 1,
+            fb: '#define não tem tipo nem escopo. const respeita escopo, tem tipo verificado e aparece no debugger.'
+          }
+        ]
+      },
+      {
+        id: 3, label: 'Nível 3', sublabel: 'Macros avançadas, matrizes e typedef',
+        questions: [
+          {
+            text: 'O que esta macro calcula, e por que os parênteses são importantes?',
+            code: '<span class="kw">#define</span> QUAD(x) ((x)*(x))',
+            options: ['eleva ao cubo; os parênteses são opcionais', 'eleva ao quadrado; os parênteses evitam erros de precedência com expressões como 2+3', 'verifica se x é quadrado perfeito', 'é equivalente a uma função inline'],
+            correct: 1,
+            fb: 'Sem parênteses: QUAD(2+3) = 2+3*2+3 = 11. Com parênteses: (2+3)*(2+3) = 25. Sempre proteja argumentos de macro!'
+          },
+          {
+            text: 'Num array `int mat[3][3]`, em que posição linear fica `mat[1][2]`?',
+            code: '<span class="cmt">// Armazenamento row-major (linha a linha):</span>\n<span class="cmt">// Posição = linha * num_colunas + coluna</span>',
+            options: ['posição 3', 'posição 4', 'posição 5', 'posição 7'],
+            correct: 2,
+            fb: '1 * 3 + 2 = 5. Arrays 2D em C são armazenados linha por linha (row-major order).'
+          },
+          {
+            text: 'O que faz `typedef struct`?',
+            code: '<span class="kw">typedef struct</span> {\n    <span class="kw">int</span> x;\n    <span class="kw">int</span> y;\n} <span class="fn">Ponto</span>;',
+            options: ['cria uma struct com campos fixos', 'cria um alias de tipo, permitindo usar `Ponto p;` em vez de `struct Ponto p;`', 'herda campos de outra struct', 'aloca a struct dinamicamente'],
+            correct: 1,
+            fb: 'typedef cria um alias. Sem typedef precisaria de `struct Ponto p;`. Com typedef basta `Ponto p;`.'
+          },
+          {
+            text: 'Este loop preenche o array com os múltiplos de 3. O que falta?',
+            code: '<span class="kw">int</span> v[<span class="num">5</span>];\n<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i ___; i++)\n    v[i] = i * <span class="num">3</span>;',
+            options: ['< 5', '<= 5', '< 4', '< 6'],
+            correct: 0,
+            fb: '`i < 5` acessa v[0] a v[4] (5 elementos). `i <= 5` acessaria v[5] — fora dos limites!'
+          },
+          {
+            text: 'Qual é a saída deste código com enum customizado?',
+            code: '<span class="kw">enum</span> Estado { PARADO = <span class="num">0</span>, LIGANDO = <span class="num">5</span>, RODANDO };\n<span class="fn">printf</span>(<span class="str">"%d"</span>, RODANDO);',
+            options: ['2', '5', '6', '10'],
+            correct: 2,
+            fb: 'Após LIGANDO=5, o próximo enumerador (RODANDO) recebe 5+1=6. Enum continua a partir do último valor definido.'
+          }
+        ]
+      }
+    ]
+  }
+];
+
+// ─────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────
+let currentTopic = null;
+let currentLevel = null;
+let currentQ = 0;
+let answers = [];   // { selected, correct }
+let score = 0;
+
+function storKey(topicId, levelId) { return `tc_cq_t${topicId}l${levelId}`; }
+function isPassed(topicId, levelId) { return localStorage.getItem(storKey(topicId, levelId)) === 'pass'; }
+function markPassed(topicId, levelId) { localStorage.setItem(storKey(topicId, levelId), 'pass'); }
+
+// ─────────────────────────────────────────────────────────────
+//  VIEWS
+// ─────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showHome() {
+  buildTopicGrid();
+  show('view-home');
+}
+
+function showLevels(topicId) {
+  currentTopic = topicId;
+  const topic = TOPICS.find(t => t.id === topicId);
+  document.getElementById('ls-title').textContent = topic.title;
+  document.getElementById('ls-desc').textContent = topic.desc;
+
+  const container = document.getElementById('level-cards-list');
+  container.innerHTML = '';
+  topic.levels.forEach((lv, idx) => {
+    const locked = false;
+    const done = isPassed(topicId, lv.id);
+    const div = document.createElement('div');
+    div.className = `level-card lv${lv.id}${locked ? ' locked' : ''}${done ? ' done' : ''}`;
+    div.innerHTML = `
+      <div class="level-badge">${lv.id}</div>
+      <div class="level-info">
+        <h3>${lv.label}</h3>
+        <p>${lv.sublabel} · 5 questões</p>
+      </div>
+      <div class="level-status"></div>`;
+    if (!locked) div.onclick = () => startQuiz(topicId, lv.id);
+    container.appendChild(div);
+  });
+  show('view-levels');
+}
+
+function buildTopicGrid() {
+  const grid = document.getElementById('topic-grid');
+  grid.innerHTML = '';
+  TOPICS.forEach(t => {
+    const card = document.createElement('div');
+    card.className = `topic-card ${t.cls}`;
+    const pills = t.levels.map(lv =>
+      `<span class="pill lv${lv.id}${isPassed(t.id, lv.id) ? ' done' : ''}">Nível ${lv.id}</span>`
+    ).join('');
+    card.innerHTML = `
+      <div class="topic-icon">${t.icon}</div>
+      <h2>${t.title}</h2>
+      <p>${t.desc}</p>
+      <div class="level-pills">${pills}</div>`;
+    card.onclick = () => showLevels(t.id);
+    grid.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+//  QUIZ ENGINE
+// ─────────────────────────────────────────────────────────────
+function startQuiz(topicId, levelId) {
+  currentTopic = topicId;
+  currentLevel = levelId;
+  currentQ = 0;
+  answers = [];
+  score = 0;
+  show('view-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const q = level.questions[currentQ];
+  const total = level.questions.length;
+
+  // header
+  document.getElementById('q-counter').textContent = `${currentQ + 1} / ${total}`;
+  const pct = (currentQ / total) * 100;
+  const fill = document.getElementById('q-progress');
+  fill.style.width = pct + '%';
+  fill.className = `progress-fill lv${currentLevel}-fill`;
+
+  // badge
+  const badge = document.getElementById('q-badge');
+  badge.textContent = level.label.toUpperCase();
+  badge.className = `q-topic-badge lv${currentLevel}`;
+
+  // question
+  document.getElementById('q-text').textContent = q.text;
+
+  // code block
+  const codeEl = document.getElementById('q-code');
+  if (q.code) {
+    codeEl.innerHTML = q.code;
+    codeEl.style.display = 'block';
+  } else {
+    codeEl.style.display = 'none';
+  }
+
+  // options
+  const keys = ['A', 'B', 'C', 'D'];
+  const optList = document.getElementById('q-options');
+  optList.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-key">${keys[i]}</span>${opt}`;
+    btn.onclick = () => answer(i);
+    optList.appendChild(btn);
+  });
+
+  // reset feedback
+  const fb = document.getElementById('q-feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+  document.getElementById('next-btn').className = 'next-btn';
+}
+
+function answer(chosen) {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const q = level.questions[currentQ];
+  const correct = (chosen === q.correct);
+
+  // disable all options
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((o, i) => {
+    o.disabled = true;
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === chosen && !correct) o.classList.add('wrong');
+  });
+
+  // feedback
+  const fb = document.getElementById('q-feedback');
+  fb.textContent = (correct ? '✓ ' : '✗ ') + q.fb;
+  fb.className = `feedback show ${correct ? 'correct-fb' : 'wrong-fb'}`;
+
+  if (correct) score++;
+  answers.push({ text: q.text, chosen, correct: q.correct, ok: correct });
+
+  // progress fill to current
+  const total = level.questions.length;
+  document.getElementById('q-progress').style.width = ((currentQ + 1) / total * 100) + '%';
+
+  // show next/finish
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.className = 'next-btn show';
+  nextBtn.textContent = currentQ + 1 < total ? 'Próxima →' : 'Ver resultado →';
+}
+
+function nextQuestion() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const total = level.questions.length;
+  currentQ++;
+  if (currentQ < total) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  RESULT
+// ─────────────────────────────────────────────────────────────
+function showResult() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const level = topic.levels.find(l => l.id === currentLevel);
+  const total = level.questions.length;
+  const pct = Math.round(score / total * 100);
+
+  markPassed(currentTopic, currentLevel);
+
+  const great = score >= 4;
+  const ring = document.getElementById('r-ring');
+  ring.className = `score-ring ${score === total ? 'pass' : great ? 'pass' : 'warn'}`;
+  document.getElementById('r-score').textContent = score;
+  document.getElementById('r-of').textContent = `de ${total}`;
+
+  document.getElementById('r-title').textContent = score === total ? 'Perfeito! 🎯' : great ? 'Muito bem!' : 'Continue praticando!';
+  document.getElementById('r-msg').textContent = great
+    ? `Você acertou ${score}/${total} (${pct}%). Ótimo desempenho!`
+    : `Você acertou ${score}/${total} (${pct}%). Revise os conceitos e tente novamente quando quiser.`;
+
+  const nextBtn = document.getElementById('r-next-btn');
+  const hasNext = topic.levels.find(l => l.id === currentLevel + 1);
+  if (hasNext) {
+    nextBtn.textContent = `Ir para Nível ${currentLevel + 1} →`;
+    nextBtn.style.display = '';
+  } else {
+    nextBtn.textContent = 'Ver todos os tópicos →';
+    nextBtn.style.display = '';
+  }
+
+  // review
+  const reviewEl = document.getElementById('r-review');
+  reviewEl.innerHTML = '<div style="font-size:.85rem;color:var(--muted);margin-bottom:12px;font-weight:600;">Revisão das questões:</div>';
+  answers.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = `review-item ${a.ok ? 'r-correct' : 'r-wrong'}`;
+    item.innerHTML = `
+      <div class="r-q">${i+1}. ${a.text.substring(0, 80)}${a.text.length > 80 ? '…' : ''}</div>
+      <div class="r-ans${a.ok ? '' : ' wrong-ans'}">
+        ${a.ok
+          ? `<span>Correto ✓</span>`
+          : `Você escolheu: ${['A','B','C','D'][a.chosen]} · Correto: <span>${['A','B','C','D'][a.correct]}</span>`}
+      </div>`;
+    reviewEl.appendChild(item);
+  });
+
+  show('view-result');
+}
+
+function retryLevel() { startQuiz(currentTopic, currentLevel); }
+function nextLevel() {
+  const topic = TOPICS.find(t => t.id === currentTopic);
+  const hasNext = topic.levels.find(l => l.id === currentLevel + 1);
+  if (hasNext) startQuiz(currentTopic, currentLevel + 1);
+  else showHome();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────
+showHome();
+</script>
+</body>
+</html>
